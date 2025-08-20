@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using CleanArchitecture.Blazor.Application.Features.Systems.DTOs;
+using CleanArchitecture.Blazor.Application.Features.Systems.Caching;
 
 namespace CleanArchitecture.Blazor.Application.Features.Systems.Queries.GetPaged;
 
-public class GetPagedSystemsQuery : IRequest<PaginatedData<SystemDto>>
+public class GetPagedSystemsQuery : IRequest<PaginatedData<SystemDto>>, ICacheableRequest<PaginatedData<SystemDto>>
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
     public string? Search { get; init; }
+    public string CacheKey => SystemCacheKey.GetPaginationCacheKey($"page={PageNumber},size={PageSize},q={Search}");
+    public TimeSpan? Expiration => TimeSpan.FromMinutes(2);
 }
 
 public class GetPagedSystemsQueryHandler : IRequestHandler<GetPagedSystemsQuery, PaginatedData<SystemDto>>

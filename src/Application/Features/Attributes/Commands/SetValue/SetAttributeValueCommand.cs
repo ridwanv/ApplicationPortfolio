@@ -3,7 +3,7 @@
 
 namespace CleanArchitecture.Blazor.Application.Features.Attributes.Commands.SetValue;
 
-public class SetAttributeValueCommand : IRequest<Result<int>>
+public class SetAttributeValueCommand : ICacheInvalidatorRequest<Result<int>>
 {
     public int ApplicationSystemId { get; set; }
     public int AttributeDefinitionId { get; set; }
@@ -11,6 +11,8 @@ public class SetAttributeValueCommand : IRequest<Result<int>>
     public decimal? Number { get; set; }
     public bool? Bool { get; set; }
     public DateTime? Date { get; set; }
+    public string CacheKey => AttributeCacheKey.GetValuesBySystemCacheKey(ApplicationSystemId);
+    public IEnumerable<string>? Tags => AttributeCacheKey.Tags;
 }
 
 public class SetAttributeValueCommandHandler : IRequestHandler<SetAttributeValueCommand, Result<int>>

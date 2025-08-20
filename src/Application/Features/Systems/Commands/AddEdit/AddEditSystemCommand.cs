@@ -13,8 +13,8 @@ public class AddEditSystemCommand : ICacheInvalidatorRequest<Result<int>>
     public string? LifecycleStage { get; set; }
     public int? ParentId { get; set; }
 
-    public string CacheKey => "systems:all";
-    public IEnumerable<string>? Tags => new[] { "systems" };
+    public string CacheKey => SystemCacheKey.GetAllCacheKey;
+    public IEnumerable<string>? Tags => SystemCacheKey.Tags;
 
     private class Mapping : Profile
     {

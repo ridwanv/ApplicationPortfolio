@@ -3,12 +3,14 @@
 
 namespace CleanArchitecture.Blazor.Application.Features.Attributes.Commands.AddDefinition;
 
-public class AddAttributeDefinitionCommand : IRequest<Result<int>>
+public class AddAttributeDefinitionCommand : ICacheInvalidatorRequest<Result<int>>
 {
     public string? Name { get; set; }
     public AttributeDataType DataType { get; set; }
     public bool IsRequired { get; set; }
     public List<string>? Options { get; set; }
+    public string CacheKey => AttributeCacheKey.GetAllDefinitionsCacheKey;
+    public IEnumerable<string>? Tags => AttributeCacheKey.Tags;
 }
 
 public class AddAttributeDefinitionCommandHandler : IRequestHandler<AddAttributeDefinitionCommand, Result<int>>
