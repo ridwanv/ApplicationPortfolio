@@ -1,4 +1,4 @@
-﻿using CleanArchitecture.Blazor.Application.Common.Constants.Roles;
+using CleanArchitecture.Blazor.Application.Common.Constants.Roles;
 using CleanArchitecture.Blazor.Server.UI.Models.NavigationMenu;
 
 namespace CleanArchitecture.Blazor.Server.UI.Services.Navigation;
@@ -40,6 +40,13 @@ public class MenuService : IMenuService
                             PageStatus = PageStatus.Completed
                         }
                     }
+                },
+                new()
+                {
+                    Title = "Systems",
+                    Icon = Icons.Material.Filled.Dns,
+                    Href = "/pages/systems",
+                    PageStatus = PageStatus.Completed
                 },
                 new()
                 {
