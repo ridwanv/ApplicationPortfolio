@@ -1,0 +1,23 @@
+# <type>(<scope>): <short summary>
+
+## Context
+- Why this change is needed
+- User story / PRD mapping
+
+## Changes
+- List of key changes with file paths when helpful
+
+## Affected Areas
+- Components/modules impacted
+- Permissions/feature flags
+
+## Breaking Changes
+- If any, describe migration steps
+
+## Testing
+- Manual/automated tests performed
+- How to verify
+
+## Links
+- Task/PR/Issue links
+
