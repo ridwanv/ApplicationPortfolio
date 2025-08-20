@@ -1,0 +1,91 @@
+@page "/system/attributes"
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Commands.AddDefinition
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Queries.GetAll
+
+@attribute [Authorize(Policy = Permissions.Attributes.Edit)]
+@inject IStringLocalizer<AttributeManager> L
+
+<PageTitle>@L["Attribute Manager"]</PageTitle>
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h5">@L["Attribute Definitions"]</MudText>
+    <MudPaper Class="pa-4">
+        <EditForm Model="_form" OnValidSubmit="OnAddDefinition">
+            <MudStack Row Spacing="2">
+                <MudTextField @bind-Value="_form.Name" Label="@L[\"Name\"]" Required="true" />
+                <MudSelect @bind-Value="_form.DataType" Label="@L[\"Type\"]">
+                    <MudSelectItem Value="AttributeDataType.Text">Text</MudSelectItem>
+                    <MudSelectItem Value="AttributeDataType.Number">Number</MudSelectItem>
+                    <MudSelectItem Value="AttributeDataType.Boolean">Boolean</MudSelectItem>
+                    <MudSelectItem Value="AttributeDataType.Date">Date</MudSelectItem>
+                    <MudSelectItem Value="AttributeDataType.Dropdown">Dropdown</MudSelectItem>
+                </MudSelect>
+                <MudCheckBox @bind-Checked="_form.IsRequired" Label="@L[\"Required\"]" />
+                @if (_form.DataType == AttributeDataType.Dropdown)
+                {
+                    <MudTextField @bind-Value="_optionsCsv" Label="@L[\"Options (comma-separated)\"]" />
+                }
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" Type="Submit">@L["Add"]</MudButton>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+
+    <MudTable Items="_definitions" Loading="_loading">
+        <HeaderContent>
+            <MudTh>@L["Name"]</MudTh>
+            <MudTh>@L["Type"]</MudTh>
+            <MudTh>@L["Required"]</MudTh>
+            <MudTh>@L["Options"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Type">@context.DataType</MudTd>
+            <MudTd DataLabel="Required">@context.IsRequired</MudTd>
+            <MudTd DataLabel="Options">@(context.Options is null ? "" : string.Join(", ", context.Options))</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudStack>
+
+@code {
+    private bool _loading;
+    private List<AttributeDefinitionDto> _definitions = new();
+    private AddAttributeDefinitionCommand _form = new();
+    private string? _optionsCsv;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var defs = await Mediator.Send(new GetAllAttributeDefinitionsQuery());
+        _definitions = defs.ToList();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnAddDefinition()
+    {
+        if (_form.DataType == AttributeDataType.Dropdown)
+        {
+            _form.Options = (_optionsCsv ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+        }
+        var result = await Mediator.Send(_form);
+        if (result.Succeeded)
+        {
+            Snackbar.Add(L["Attribute added"], Severity.Success);
+            _form = new();
+            _optionsCsv = string.Empty;
+            await LoadAsync();
+        }
+        else
+        {
+            Snackbar.Add(result.Messages.FirstOrDefault() ?? L["Failed"], Severity.Error);
+        }
+    }
+}
+

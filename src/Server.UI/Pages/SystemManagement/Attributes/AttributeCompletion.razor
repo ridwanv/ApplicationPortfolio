@@ -1,0 +1,57 @@
+@page "/system/attributes/completion"
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Queries.GetAll
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Queries.Completion
+
+@attribute [Authorize(Policy = Permissions.Attributes.View)]
+@inject IStringLocalizer<AttributeCompletion> L
+
+<PageTitle>@L["Attribute Completion"]</PageTitle>
+
+<MudStack Spacing="2">
+    <MudAutocomplete T="AttributeDefinitionDto" ToStringFunc="@(x => x?.Name ?? string.Empty)" 
+                     ValueChanged="OnDefinitionChanged" 
+                     Dense="true"
+                     Placeholder="@L[\"Select attribute\"]" 
+                     SearchFunc="SearchDefinitions" />
+
+    @if (_result is not null)
+    {
+        <MudProgressLinear Value="(double)_result.CompletionPercent" Color="Color.Success" />
+        <MudText Typo="Typo.subtitle2">@_result.CompletionPercent% @L["completed"] (@_result.Completed / @_result.TotalSystems)</MudText>
+
+        <MudTable Items="_result.MissingSystems">
+            <HeaderContent>
+                <MudTh>@L["System"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="System">@context.Name</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudStack>
+
+@code {
+    private List<AttributeDefinitionDto> _definitions = new();
+    private AttributeCompletionResult? _result;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _definitions = (await Mediator.Send(new GetAllAttributeDefinitionsQuery())).ToList();
+    }
+
+    private Task<IEnumerable<AttributeDefinitionDto>> SearchDefinitions(string value)
+    {
+        var query = value?.ToLowerInvariant() ?? string.Empty;
+        var items = _definitions.Where(d => (d.Name ?? string.Empty).ToLowerInvariant().Contains(query));
+        return Task.FromResult(items);
+    }
+
+    private async Task OnDefinitionChanged(AttributeDefinitionDto? item)
+    {
+        _result = null;
+        if (item is null) return;
+        _result = await Mediator.Send(new GetAttributeCompletionQuery { AttributeDefinitionId = item.Id });
+        StateHasChanged();
+    }
+}
+

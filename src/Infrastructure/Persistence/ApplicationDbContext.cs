@@ -33,6 +33,8 @@ public class ApplicationDbContext : IdentityDbContext<
     public DbSet<ApplicationSystem> ApplicationSystems { get; set; }
     public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
     public DbSet<AttributeValue> AttributeValues { get; set; }
+    public DbSet<CostEntry> CostEntries { get; set; }
+    public DbSet<ValueRating> ValueRatings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

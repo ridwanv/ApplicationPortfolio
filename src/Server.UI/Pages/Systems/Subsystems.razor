@@ -1,0 +1,53 @@
+@page "/pages/systems/{Id:int}/tree"
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.Hierarchy
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<Subsystems> L
+
+<PageTitle>@L["Subsystems"]</PageTitle>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_node is null)
+{
+    <MudText>@L["Not found"]</MudText>
+}
+else
+{
+    <MudTreeView Items="new[] { _node }" ChildContent="@(n => RenderNode(n))" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private bool _loading;
+    private SystemNodeDto? _node;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _node = await Mediator.Send(new GetSystemHierarchyQuery { SystemId = Id });
+        _loading = false;
+    }
+
+    private RenderFragment<SystemNodeDto> RenderNode => node => builder =>
+    {
+        var i = 0;
+        builder.OpenComponent<MudTreeViewItem>(i++);
+        builder.AddAttribute(i++, "Text", $"{node.Name} (Opex: {node.TotalOpex:C}, Capex: {node.TotalCapex:C})");
+        if (node.Children?.Any() == true)
+        {
+            builder.AddAttribute(i++, "ChildContent", (RenderFragment)(b =>
+            {
+                var j = 0;
+                foreach (var c in node.Children)
+                {
+                    b.AddContent(j++, RenderNode(c));
+                }
+            }));
+        }
+        builder.CloseComponent();
+    };
+}
+

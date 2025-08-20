@@ -134,6 +134,18 @@ public class MenuService : IMenuService
                         },
                         new()
                         {
+                            Title = "Attribute Manager",
+                            Href = "/system/attributes",
+                            PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
+                            Title = "Attribute Completion",
+                            Href = "/system/attributes/completion",
+                            PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
                             Title = "Audit Trails",
                             Href = "/system/audittrails",
                             PageStatus = PageStatus.Completed
