@@ -10,6 +10,8 @@ public class SystemsAnalyticsDto
     public Dictionary<string, int> ByHosting { get; set; } = new();
     public decimal TotalOpex { get; set; }
     public decimal TotalCapex { get; set; }
+    public List<(string Name, decimal TotalCost)> TopCost { get; set; } = new();
+    public List<(string Name, int? ValueScore)> TopValue { get; set; } = new();
 }
 
 public class GetSystemsAnalyticsQuery : ICacheableRequest<SystemsAnalyticsDto>
@@ -44,13 +46,32 @@ public class GetSystemsAnalyticsQueryHandler : IRequestHandler<GetSystemsAnalyti
             .Select(g => new { Opex = g.Sum(x => x.Opex), Capex = g.Sum(x => x.Capex) })
             .FirstOrDefaultAsync(cancellationToken) ?? new { Opex = 0m, Capex = 0m };
 
+        var topCost = await db.ApplicationSystems
+            .Select(s => new {
+                s.Name,
+                Total = db.CostEntries.Where(c => c.ApplicationSystemId == s.Id).Sum(c => c.Opex + c.Capex)
+            })
+            .OrderByDescending(x => x.Total)
+            .Take(5)
+            .ToListAsync(cancellationToken);
+        var topValue = await db.ApplicationSystems
+            .Select(s => new {
+                s.Name,
+                Score = db.ValueRatings.Where(v => v.ApplicationSystemId == s.Id).Select(v => (int?)v.Score).FirstOrDefault()
+            })
+            .OrderByDescending(x => x.Score)
+            .Take(5)
+            .ToListAsync(cancellationToken);
+
         return new SystemsAnalyticsDto
         {
             Total = total,
             ByLifecycle = byLifecycle,
             ByHosting = byHosting,
             TotalOpex = costs.Opex,
-            TotalCapex = costs.Capex
+            TotalCapex = costs.Capex,
+            TopCost = topCost.Select(x => (x.Name ?? string.Empty, x.Total)).ToList(),
+            TopValue = topValue.Select(x => (x.Name ?? string.Empty, x.Score)).ToList()
         };
     }
 }

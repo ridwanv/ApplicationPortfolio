@@ -38,6 +38,10 @@
             <MudTd DataLabel="Lifecycle">@context.LifecycleStage</MudTd>
             <MudTd>
                 <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="(() => OnView(context.Id))">@L["View"]</MudButton>
+                @if (_accessRights.Edit)
+                {
+                    <MudButton Class="ml-2" Variant="Variant.Text" Size="Size.Small" OnClick="(() => OnEdit(context.Id))">@L["Edit"]</MudButton>
+                }
             </MudTd>
         </RowTemplate>
     </MudTable>
@@ -94,6 +98,20 @@
     private void OnView(int id)
     {
         Navigation.NavigateTo($"/pages/systems/{id}");
+    }
+
+    private async Task OnEdit(int id)
+    {
+        if (!_accessRights.Edit)
+        {
+            Snackbar.Add(L["You do not have permission."], Severity.Warning);
+            return;
+        }
+        var parameters = new DialogParameters { [nameof(SystemFormDialog.Id)] = id };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<SystemFormDialog>(L["Edit System"], parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled) await LoadAsync();
     }
 }
 
