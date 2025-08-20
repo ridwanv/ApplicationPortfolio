@@ -13,10 +13,12 @@ public class ReviewLifecycleChangeRequestCommand : IRequest<Result<int>>
 public class ReviewLifecycleChangeRequestCommandHandler : IRequestHandler<ReviewLifecycleChangeRequestCommand, Result<int>>
 {
     private readonly IApplicationDbContextFactory _dbFactory;
+    private readonly IMailService _mailService;
 
-    public ReviewLifecycleChangeRequestCommandHandler(IApplicationDbContextFactory dbFactory)
+    public ReviewLifecycleChangeRequestCommandHandler(IApplicationDbContextFactory dbFactory, IMailService mailService)
     {
         _dbFactory = dbFactory;
+        _mailService = mailService;
     }
 
     public async Task<Result<int>> Handle(ReviewLifecycleChangeRequestCommand request, CancellationToken cancellationToken)
@@ -32,6 +34,10 @@ public class ReviewLifecycleChangeRequestCommandHandler : IRequestHandler<Review
             if (system != null) system.LifecycleStage = entity.ToStage;
         }
         await db.SaveChangesAsync(cancellationToken);
+        // Notify via email - placeholder recipient, integrate owner email when available
+        var subject = request.Approve ? "Lifecycle request approved" : "Lifecycle request rejected";
+        var body = $"Request #{entity.Id} {(request.Approve ? "approved" : "rejected")} with comments: {request.Comments}";
+        try { await _mailService.SendAsync("owner@example.com", subject, body); } catch { /* ignore send failures */ }
         return await Result<int>.SuccessAsync(entity.Id);
     }
 }
