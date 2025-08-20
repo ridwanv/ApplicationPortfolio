@@ -1,0 +1,65 @@
+@page "/pages/systems"
+@using CleanArchitecture.Blazor.Application.Features.Systems.DTOs
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.GetPaged
+@using CleanArchitecture.Blazor.Application.Features.Systems.Commands.AddEdit
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<Systems> L
+
+<PageTitle>Systems</PageTitle>
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h5">@L["Systems"]</MudText>
+    <MudStack Row Spacing="1">
+        @if (_accessRights.Create)
+        {
+            <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="OnCreate">@L["New"]</MudButton>
+        }
+    </MudStack>
+    <MudTable Items="_items" Loading="_loading">
+        <HeaderContent>
+            <MudTh>@L["Name"]</MudTh>
+            <MudTh>@L["Category"]</MudTh>
+            <MudTh>@L["Hosting"]</MudTh>
+            <MudTh>@L["Lifecycle"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Category">@context.Category</MudTd>
+            <MudTd DataLabel="Hosting">@context.Hosting</MudTd>
+            <MudTd DataLabel="Lifecycle">@context.LifecycleStage</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudStack>
+
+@code {
+    private SystemsAccessRights _accessRights = new();
+    private bool _loading;
+    private List<SystemDto> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _accessRights = await PermissionService.GetAccessRightsAsync<SystemsAccessRights>();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await Mediator.Send(new GetPagedSystemsQuery { PageNumber = 1, PageSize = 50 });
+        _items = result.Items.ToList();
+        _loading = false;
+    }
+
+    private Task OnCreate()
+    {
+        if (!_accessRights.Create)
+        {
+            Snackbar.Add(L["You do not have permission."], Severity.Warning);
+            return Task.CompletedTask;
+        }
+        // open dialog here in future iterations
+        return Task.CompletedTask;
+    }
+}
+
