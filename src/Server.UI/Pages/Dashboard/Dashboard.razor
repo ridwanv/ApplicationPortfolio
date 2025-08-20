@@ -1,11 +1,29 @@
-﻿@page "/"
+@page "/"
 @using CleanArchitecture.Blazor.Server.UI.Pages.Dashboard.Components
 @using MudBlazor.Utilities
 @inject IStringLocalizer<Dashboard> L
+@using CleanArchitecture.Blazor.Application.features.Systems.Queries.Analytics
 <PageTitle>@Title</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large">
     <div class="@ContentClassNames">
+        <MudPaper Class="pa-4 mb-3">
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6">@L["Systems Analytics"]</MudText>
+                @if (_sysAnalytics is null)
+                {
+                    <MudProgressCircular Indeterminate="true" />
+                }
+                else
+                {
+                    <MudStack Row Spacing="3">
+                        <MudText>@L["Total"]: @_sysAnalytics.Total</MudText>
+                        <MudText>@L["Total Opex"]: @_sysAnalytics.TotalOpex.ToString("C")</MudText>
+                        <MudText>@L["Total Capex"]: @_sysAnalytics.TotalCapex.ToString("C")</MudText>
+                    </MudStack>
+                }
+            </MudStack>
+        </MudPaper>
         <MudPaper Class="pa-4 mb-3">
             <style>
                
@@ -321,6 +339,7 @@
 
     public string Title { get; set; } = "Dashboard";
 
+    private SystemsAnalyticsDto? _sysAnalytics;
 
     protected string ContentClassNames => new CssBuilder("flex-grow-1 flex-shrink-1")
         .AddClass("pa-5", !IsMobile)
@@ -355,8 +374,8 @@
         }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        Title = L["Dashboard"];
+        _sysAnalytics = await Mediator.Send(new GetSystemsAnalyticsQuery());
     }
 }
