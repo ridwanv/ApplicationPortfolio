@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using CleanArchitecture.Blazor.Application;
 using CleanArchitecture.Blazor.Application.Common.Constants.Localization;
 using CleanArchitecture.Blazor.Application.Common.Interfaces;
@@ -20,7 +20,10 @@ using Microsoft.Extensions.FileProviders;
 using MudBlazor.Services;
 using QuestPDF;
 using QuestPDF.Infrastructure;
-
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper.QueryableExtensions;
+using CleanArchitecture.Blazor.Application.Systems.Queries.GetSystems;
 
 
 namespace CleanArchitecture.Blazor.Server.UI;
@@ -208,7 +211,21 @@ public static class DependencyInjection
         { // We obviously need this
             KeepAliveInterval = TimeSpan.FromSeconds(30), // Just in case
         });
-       
+
+        // Minimal APIs for Systems
+        app.MapGet("/api/systems", async ([FromServices] IApplicationDbContextFactory dbFactory, [FromServices] IMapper mapper, HttpContext ctx, CancellationToken ct) =>
+        {
+            await using var db = await dbFactory.CreateAsync(ct);
+            var items = await db.ApplicationSystems.AsNoTracking().ProjectTo<SystemDto>(mapper.ConfigurationProvider).ToListAsync(ct);
+            return Results.Ok(items);
+        });
+        app.MapGet("/api/systems/{id:int}", async (int id, [FromServices] IApplicationDbContextFactory dbFactory, [FromServices] IMapper mapper, CancellationToken ct) =>
+        {
+            await using var db = await dbFactory.CreateAsync(ct);
+            var item = await db.ApplicationSystems.Where(x => x.Id == id).ProjectTo<SystemDto>(mapper.ConfigurationProvider).FirstOrDefaultAsync(ct);
+            return item is null ? Results.NotFound() : Results.Ok(item);
+        });
+        
         return app;
     }
 }

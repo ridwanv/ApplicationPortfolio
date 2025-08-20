@@ -2,6 +2,7 @@
 @using CleanArchitecture.Blazor.Application.Features.Systems.DTOs
 @using CleanArchitecture.Blazor.Application.Features.Systems.Queries.GetPaged
 @using CleanArchitecture.Blazor.Application.Features.Systems.Commands.AddEdit
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.Export
 
 @attribute [Authorize(Policy = Permissions.Systems.View)]
 @inject IStringLocalizer<Systems> L
@@ -14,6 +15,11 @@
         @if (_accessRights.Create)
         {
             <MudButton StartIcon="@Icons.Material.Outlined.Add" OnClick="OnCreate">@L["New"]</MudButton>
+        }
+        @if (_accessRights.Export)
+        {
+            <MudButton StartIcon="@Icons.Material.Outlined.Download" OnClick="(() => OnExport(ExportType.Excel))">@L["Export CSV/XLSX"]</MudButton>
+            <MudButton StartIcon="@Icons.Material.Outlined.PictureAsPdf" OnClick="(() => OnExport(ExportType.PDF))">@L["Export PDF"]</MudButton>
         }
     </MudStack>
     <MudTable Items="_items" Loading="_loading">
@@ -60,6 +66,22 @@
         }
         // open dialog here in future iterations
         return Task.CompletedTask;
+    }
+
+    private async Task OnExport(ExportType type)
+    {
+        var response = await Mediator.Send(new ExportSystemsQuery { ExportType = type });
+        if (response.Succeeded)
+        {
+            var bytes = response.Data!;
+            var fileName = type == ExportType.PDF ? "systems.pdf" : "systems.xlsx";
+            var contentType = type == ExportType.PDF ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            await BlazorDownloadFileService.DownloadFile(fileName, bytes, contentType);
+        }
+        else
+        {
+            Snackbar.Add(response.Messages.FirstOrDefault() ?? L["Export failed"], Severity.Error);
+        }
     }
 }
 
