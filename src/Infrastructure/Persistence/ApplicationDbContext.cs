@@ -35,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<
     public DbSet<AttributeValue> AttributeValues { get; set; }
     public DbSet<CostEntry> CostEntries { get; set; }
     public DbSet<ValueRating> ValueRatings { get; set; }
+    public DbSet<LifecycleChangeRequest> LifecycleChangeRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

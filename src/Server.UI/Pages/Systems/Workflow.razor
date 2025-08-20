@@ -1,0 +1,37 @@
+@page "/pages/systems/workflow"
+@using CleanArchitecture.Blazor.Application.Features.Systems.Commands.Workflow
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<Workflow> L
+
+<PageTitle>@L["Lifecycle Workflow"]</PageTitle>
+
+<MudPaper Class="pa-4">
+    <MudStack Row Spacing="2">
+        <MudTextField @bind-Value="_systemId" Label="System Id" />
+        <MudTextField @bind-Value="_from" Label="From" />
+        <MudTextField @bind-Value="_to" Label="To" />
+        <MudTextField @bind-Value="_comments" Label="Comments" />
+        <MudButton OnClick="OnSubmit">Submit</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private int _systemId;
+    private string? _from;
+    private string? _to;
+    private string? _comments;
+
+    private async Task OnSubmit()
+    {
+        var res = await Mediator.Send(new SubmitLifecycleChangeRequestCommand
+        {
+            SystemId = _systemId,
+            FromStage = _from ?? string.Empty,
+            ToStage = _to ?? string.Empty,
+            Comments = _comments
+        });
+        Snackbar.Add(res.Succeeded ? "Submitted" : (res.Messages.FirstOrDefault() ?? "Failed"), res.Succeeded ? Severity.Success : Severity.Error);
+    }
+}
+

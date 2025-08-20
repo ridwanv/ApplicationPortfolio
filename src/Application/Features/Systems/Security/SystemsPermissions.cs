@@ -28,6 +28,8 @@ public static partial class Permissions
 
         [Description("Allows exporting systems")]
         public const string Export = "Permissions.Systems.Export";
+        [Description("Allows approving lifecycle workflows")]
+        public const string Approve = "Permissions.Systems.Approve";
     }
 }
 
