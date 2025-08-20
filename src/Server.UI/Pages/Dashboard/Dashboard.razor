@@ -21,6 +21,18 @@
                         <MudText>@L["Total Opex"]: @_sysAnalytics.TotalOpex.ToString("C")</MudText>
                         <MudText>@L["Total Capex"]: @_sysAnalytics.TotalCapex.ToString("C")</MudText>
                     </MudStack>
+                    <MudStack Row Spacing="4" Class="mt-2">
+                        <MudPaper Class="pa-2">
+                            <MudText Typo="Typo.subtitle2">@L["By Lifecycle"]</MudText>
+                            <MudChart ChartType="ChartType.Donut" Labels="_lifecycleLabels" 
+                                      Input="new double[][] { _lifecycleValues }" />
+                        </MudPaper>
+                        <MudPaper Class="pa-2">
+                            <MudText Typo="Typo.subtitle2">@L["By Hosting"]</MudText>
+                            <MudChart ChartType="ChartType.Donut" Labels="_hostingLabels" 
+                                      Input="new double[][] { _hostingValues }" />
+                        </MudPaper>
+                    </MudStack>
                 }
             </MudStack>
         </MudPaper>
@@ -88,7 +100,7 @@
                     height: 100%;
                     transition: width 0.6s ease;
                 }
-                @@media (max-width: 850px) {
+                @media (max-width: 850px) {
                     .flex-row
 
                 {
@@ -313,7 +325,6 @@
     <MudText Typo="Typo.body1"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
     <MudText Typo="Typo.body2"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
     <MudText Typo="Typo.overline"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
-    <MudText Typo="Typo.caption"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
 
     <MudText Typo="Typo.body1" Class="mud-secondary-text"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
     <MudText Typo="Typo.body1" Class="mud-primary-text"> Here we add each class to the divs to change the background color, text color and both background and text color with one class only. </MudText>
@@ -340,6 +351,10 @@
     public string Title { get; set; } = "Dashboard";
 
     private SystemsAnalyticsDto? _sysAnalytics;
+    private string[] _lifecycleLabels = Array.Empty<string>();
+    private double[] _lifecycleValues = Array.Empty<double>();
+    private string[] _hostingLabels = Array.Empty<string>();
+    private double[] _hostingValues = Array.Empty<double>();
 
     protected string ContentClassNames => new CssBuilder("flex-grow-1 flex-shrink-1")
         .AddClass("pa-5", !IsMobile)
@@ -377,5 +392,12 @@
     protected override async Task OnInitializedAsync()
     {
         _sysAnalytics = await Mediator.Send(new GetSystemsAnalyticsQuery());
+        if (_sysAnalytics != null)
+        {
+            _lifecycleLabels = _sysAnalytics.ByLifecycle.Keys.ToArray();
+            _lifecycleValues = _sysAnalytics.ByLifecycle.Values.Select(v => (double)v).ToArray();
+            _hostingLabels = _sysAnalytics.ByHosting.Keys.ToArray();
+            _hostingValues = _sysAnalytics.ByHosting.Values.Select(v => (double)v).ToArray();
+        }
     }
 }

@@ -1,0 +1,122 @@
+@page "/pages/systems/{Id:int}"
+@using CleanArchitecture.Blazor.Application.Features.Systems.DTOs
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.GetAll
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Queries.GetAll
+@using CleanArchitecture.Blazor.Application.Features.Attributes.Commands.SetValue
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<SystemDetail> L
+
+<PageTitle>@L["System Detail"]</PageTitle>
+
+<MudStack Spacing="2">
+    <MudBreadcrumbs Items="new[] { (L["Systems"], "/pages/systems"), (system?.Name ?? $"#{Id}", null) }" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (system is null)
+    {
+        <MudAlert Severity="Severity.Warning">@L["System not found"]</MudAlert>
+    }
+    else
+    {
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6">@system.Name</MudText>
+            <MudText Typo="Typo.body2">@system.Description</MudText>
+            <MudGrid Class="mt-2">
+                <MudItem xs="12" sm="6"><MudText Typo="Typo.subtitle2">@L["Category"]: @system.Category</MudText></MudItem>
+                <MudItem xs="12" sm="6"><MudText Typo="Typo.subtitle2">@L["Hosting"]: @system.Hosting</MudText></MudItem>
+                <MudItem xs="12" sm="6"><MudText Typo="Typo.subtitle2">@L["Lifecycle"]: @system.LifecycleStage</MudText></MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mt-4">
+            <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6">@L["Attributes"]</MudText>
+                <MudSpacer />
+                <MudButton Color="Color.Primary" OnClick="OnSave">@L["Save"]</MudButton>
+            </MudStack>
+            <MudGrid Class="mt-2">
+                @foreach (var def in _definitions)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudStack>
+                            <MudText Typo="Typo.subtitle2">@def.Name @if (def.IsRequired) { <span style="color:red">*</span> }</MudText>
+                            @switch (def.DataType)
+                            {
+                                case AttributeDataType.Text:
+                                case AttributeDataType.Dropdown:
+                                    <MudTextField @bind-Value="_textValues[def.Id]" />
+                                    break;
+                                case AttributeDataType.Number:
+                                    <MudNumericField TValue="decimal?" @bind-Value="_numberValues[def.Id]" />
+                                    break;
+                                case AttributeDataType.Boolean:
+                                    <MudSwitch @bind-Checked="_boolValues[def.Id]" />
+                                    break;
+                                case AttributeDataType.Date:
+                                    <MudDatePicker @bind-Date="_dateValues[def.Id]" />
+                                    break;
+                            }
+                        </MudStack>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private bool _loading;
+    private SystemDto? system;
+    private List<AttributeDefinitionDto> _definitions = new();
+
+    private Dictionary<int, string?> _textValues = new();
+    private Dictionary<int, decimal?> _numberValues = new();
+    private Dictionary<int, bool?> _boolValues = new();
+    private Dictionary<int, DateTime?> _dateValues = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        system = await Mediator.Send(new GetSystemByIdQuery { Id = Id });
+        _definitions = (await Mediator.Send(new GetAllAttributeDefinitionsQuery())).ToList();
+        var values = (await Mediator.Send(new GetAttributeValuesBySystemQuery { SystemId = Id })).ToList();
+        // seed current values
+        foreach (var def in _definitions)
+        {
+            _textValues[def.Id] = values.FirstOrDefault(v => v.AttributeDefinitionId == def.Id)?.Text;
+            _numberValues[def.Id] = values.FirstOrDefault(v => v.AttributeDefinitionId == def.Id)?.Number;
+            _boolValues[def.Id] = values.FirstOrDefault(v => v.AttributeDefinitionId == def.Id)?.Bool;
+            _dateValues[def.Id] = values.FirstOrDefault(v => v.AttributeDefinitionId == def.Id)?.Date;
+        }
+        _loading = false;
+    }
+
+    private async Task OnSave()
+    {
+        foreach (var def in _definitions)
+        {
+            var cmd = new SetAttributeValueCommand
+            {
+                ApplicationSystemId = Id,
+                AttributeDefinitionId = def.Id,
+                Text = _textValues.GetValueOrDefault(def.Id),
+                Number = _numberValues.GetValueOrDefault(def.Id),
+                Bool = _boolValues.GetValueOrDefault(def.Id),
+                Date = _dateValues.GetValueOrDefault(def.Id)
+            };
+            var res = await Mediator.Send(cmd);
+            if (!res.Succeeded)
+            {
+                Snackbar.Add(res.Messages.FirstOrDefault() ?? L["Save failed"], Severity.Error);
+                return;
+            }
+        }
+        Snackbar.Add(L["Saved"], Severity.Success);
+    }
+}
+
