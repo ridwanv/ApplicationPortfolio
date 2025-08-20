@@ -1,0 +1,17 @@
+Application Portfolio Management SaaS PRD (MVP)
+
+Vision: Lean enterprise-grade SaaS for capturing, governing, and reporting on application portfolios across tenants.
+
+Core MVP Capabilities:
+- CRUD for systems and subsystems with 3+ level hierarchy, roll-ups for cost/value/risk.
+- Dynamic attributes (Text, Number, Boolean, Date, Dropdown) via Attribute Manager; immediate availability across forms, search, filters; completion dashboard.
+- Role-based access with fine-grained permissions; Azure AD SSO; tenant isolation.
+- Workflows for lifecycle change requests (Owner -> Change Manager -> Portfolio Manager) with audit trail and notifications.
+- Dashboards/analytics and CSV exports; API v1 for systems and attributes; audit/versioning.
+
+Non-Functional Targets:
+- P95 < 300ms reads, 99.9% uptime, RPO 1h / RTO 4h, ~50 rps baseline, 1k systems/tenant.
+
+Deliverables (high level):
+- Platform & Security, Core Domain, CQRS & Data, UI/UX, Workflow & Notifications, Analytics & Exports, Audit & Versioning, API, DevOps & NFRs.
+

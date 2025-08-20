@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 
@@ -19,6 +19,9 @@ public interface IApplicationDbContext: IAsyncDisposable
     DbSet<Contact> Contacts { get; set; }
     DbSet<LoginAudit> LoginAudits { get; set; }
     DbSet<UserLoginRiskSummary> UserLoginRiskSummaries { get; set; }
+    DbSet<ApplicationSystem> ApplicationSystems { get; set; }
+    DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
+    DbSet<AttributeValue> AttributeValues { get; set; }
     ChangeTracker ChangeTracker { get; }
 
     DbSet<DataProtectionKey> DataProtectionKeys { get; set; }

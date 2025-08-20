@@ -1,0 +1,61 @@
+{
+  "tags": {
+    "feature-apm-mvp": {
+      "metadata": {
+        "description": "APM SaaS MVP backlog"
+      },
+      "tasks": [
+        {
+          "id": 1,
+          "title": "Platform & Security foundation",
+          "description": "Multi-tenancy, Azure AD SSO, RBAC/permissions, DI setup, caching, logging",
+          "status": "pending",
+          "priority": "high",
+          "subtasks": [
+            {"id": 1, "title": "Tenant plumbing & filters", "status": "pending"},
+            {"id": 2, "title": "Azure AD OIDC & roles/permissions", "status": "pending"},
+            {"id": 3, "title": "Serilog/FusionCache wiring", "status": "pending"}
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Core domain: Systems, Subsystems, Capabilities, Attributes",
+          "description": "Entities, EF configs, DbSets, migrations",
+          "status": "pending",
+          "priority": "high",
+          "subtasks": [
+            {"id": 1, "title": "Entities & configs (ApplicationSystem, AttributeDefinition, AttributeValue)", "status": "done"},
+            {"id": 2, "title": "CQRS handlers for Systems and Attributes", "status": "pending"},
+            {"id": 3, "title": "Paged queries & search", "status": "pending"}
+          ]
+        },
+        {
+          "id": 3,
+          "title": "UI: Systems list/detail & Create/Edit Wizard",
+          "description": "Blazor pages and components per standards",
+          "status": "pending",
+          "priority": "high"
+        },
+        {
+          "id": 4,
+          "title": "Subsystem hierarchy & roll-ups",
+          "description": "3+ levels, roll-up cost/value/risk, tree view",
+          "status": "pending",
+          "priority": "high"
+        },
+        {
+          "id": 5,
+          "title": "Workflow: Lifecycle change requests",
+          "description": "Owner -> Change Manager -> Portfolio Manager, audit & notifications",
+          "status": "pending",
+          "priority": "medium"
+        },
+        {"id": 6, "title": "Dashboards & analytics + CSV export", "status": "pending", "priority": "medium"},
+        {"id": 7, "title": "API v1 for systems/attributes", "status": "pending", "priority": "medium"},
+        {"id": 8, "title": "Audit & versioning", "status": "pending", "priority": "medium"},
+        {"id": 9, "title": "Perf hardening to P95<300ms", "status": "pending", "priority": "high"},
+        {"id": 10, "title": "DevOps: Azure resources & CI/CD", "status": "pending", "priority": "high"}
+      ]
+    }
+  }
+}
