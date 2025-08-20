@@ -29,12 +29,16 @@
             <MudTh>@L["Category"]</MudTh>
             <MudTh>@L["Hosting"]</MudTh>
             <MudTh>@L["Lifecycle"]</MudTh>
+            <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Category">@context.Category</MudTd>
             <MudTd DataLabel="Hosting">@context.Hosting</MudTd>
             <MudTd DataLabel="Lifecycle">@context.LifecycleStage</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="(() => OnView(context.Id))">@L["View"]</MudButton>
+            </MudTd>
         </RowTemplate>
     </MudTable>
 </MudStack>
@@ -85,6 +89,11 @@
         {
             Snackbar.Add(response.Messages.FirstOrDefault() ?? L["Export failed"], Severity.Error);
         }
+    }
+
+    private void OnView(int id)
+    {
+        Navigation.NavigateTo($"/pages/systems/{id}");
     }
 }
 

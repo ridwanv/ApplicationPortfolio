@@ -8,7 +8,12 @@
 <PageTitle>@L["Approvals Inbox"]</PageTitle>
 
 <MudStack Spacing="2">
-    <MudSegmented ControlContent="@(() => new[] { "Submitted", "UnderReview" })" />
+    <MudSelect @bind-Value="_filter" Label="Status" Dense="true">
+        <MudSelectItem Value="LifecycleRequestStatus.Submitted">Submitted</MudSelectItem>
+        <MudSelectItem Value="LifecycleRequestStatus.UnderReview">Under Review</MudSelectItem>
+        <MudSelectItem Value="LifecycleRequestStatus.Approved">Approved</MudSelectItem>
+        <MudSelectItem Value="LifecycleRequestStatus.Rejected">Rejected</MudSelectItem>
+    </MudSelect>
     <MudTable Items="_items" Loading="_loading">
         <HeaderContent>
             <MudTh>Id</MudTh>
@@ -39,6 +44,7 @@
     private bool _loading;
     private bool _canApprove;
     private List<LifecycleRequestDto> _items = new();
+    private LifecycleRequestStatus _filter = LifecycleRequestStatus.Submitted;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,7 +55,7 @@
     private async Task LoadAsync()
     {
         _loading = true;
-        _items = (await Mediator.Send(new GetLifecycleRequestsQuery { Status = LifecycleRequestStatus.Submitted })).ToList();
+        _items = (await Mediator.Send(new GetLifecycleRequestsQuery { Status = _filter })).ToList();
         _loading = false;
     }
 
