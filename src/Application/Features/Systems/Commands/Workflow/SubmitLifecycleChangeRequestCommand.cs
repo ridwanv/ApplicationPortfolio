@@ -11,6 +11,13 @@ public class SubmitLifecycleChangeRequestCommand : IRequest<Result<int>>
     public string? Comments { get; set; }
 }
 
+public class LifecycleChangeRequestCreatedEvent : DomainEvent
+{
+    public required int RequestId { get; init; }
+    public required int SystemId { get; init; }
+    public required string ToStage { get; init; }
+}
+
 public class SubmitLifecycleChangeRequestCommandHandler : IRequestHandler<SubmitLifecycleChangeRequestCommand, Result<int>>
 {
     private readonly IApplicationDbContextFactory _dbFactory;
@@ -33,6 +40,7 @@ public class SubmitLifecycleChangeRequestCommandHandler : IRequestHandler<Submit
         };
         db.LifecycleChangeRequests.Add(entity);
         await db.SaveChangesAsync(cancellationToken);
+        entity.AddDomainEvent(new LifecycleChangeRequestCreatedEvent { RequestId = entity.Id, SystemId = entity.ApplicationSystemId, ToStage = entity.ToStage ?? string.Empty });
         return await Result<int>.SuccessAsync(entity.Id);
     }
 }

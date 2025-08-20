@@ -50,6 +50,13 @@ public class MenuService : IMenuService
                 },
                 new()
                 {
+                    Title = "Approvals",
+                    Icon = Icons.Material.Filled.Task,
+                    Href = "/pages/systems/approvals",
+                    PageStatus = PageStatus.Completed
+                },
+                new()
+                {
                     Title = "Analytics",
                     Roles = new[] { RoleName.Admin, RoleName.Users },
                     Icon = Icons.Material.Filled.Analytics,

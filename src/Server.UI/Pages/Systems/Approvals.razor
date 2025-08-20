@@ -1,0 +1,73 @@
+@page "/pages/systems/approvals"
+@using CleanArchitecture.Blazor.Application.Features.Systems.Commands.Workflow
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.Workflow
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<Approvals> L
+
+<PageTitle>@L["Approvals Inbox"]</PageTitle>
+
+<MudStack Spacing="2">
+    <MudSegmented ControlContent="@(() => new[] { "Submitted", "UnderReview" })" />
+    <MudTable Items="_items" Loading="_loading">
+        <HeaderContent>
+            <MudTh>Id</MudTh>
+            <MudTh>System</MudTh>
+            <MudTh>From</MudTh>
+            <MudTh>To</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.ApplicationSystemId</MudTd>
+            <MudTd>@context.FromStage</MudTd>
+            <MudTd>@context.ToStage</MudTd>
+            <MudTd>@context.Status</MudTd>
+            <MudTd>
+                @if (_canApprove)
+                {
+                    <MudButton Color="Color.Success" OnClick="(() => OnReview(context.Id, true))">Approve</MudButton>
+                    <MudButton Color="Color.Error" OnClick="(() => OnReview(context.Id, false))">Reject</MudButton>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudStack>
+
+@code {
+    private bool _loading;
+    private bool _canApprove;
+    private List<LifecycleRequestDto> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canApprove = await PermissionService.HasPermissionAsync(Permissions.Systems.Approve);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _items = (await Mediator.Send(new GetLifecycleRequestsQuery { Status = LifecycleRequestStatus.Submitted })).ToList();
+        _loading = false;
+    }
+
+    private async Task OnReview(int id, bool approve)
+    {
+        if (!_canApprove)
+        {
+            Snackbar.Add(L["No permission"], Severity.Warning);
+            return;
+        }
+        var res = await Mediator.Send(new ReviewLifecycleChangeRequestCommand
+        {
+            RequestId = id,
+            Approve = approve,
+            Comments = approve ? "Approved" : "Rejected"
+        });
+        Snackbar.Add(res.Succeeded ? L["Done"] : (res.Messages.FirstOrDefault() ?? L["Failed"]), res.Succeeded ? Severity.Success : Severity.Error);
+        await LoadAsync();
+    }
+}
+
