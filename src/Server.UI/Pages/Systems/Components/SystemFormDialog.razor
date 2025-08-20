@@ -1,0 +1,89 @@
+@using CleanArchitecture.Blazor.Application.Features.Systems.Commands.AddEdit
+@using CleanArchitecture.Blazor.Application.Features.Systems.DTOs
+@using CleanArchitecture.Blazor.Application.Features.Systems.Queries.GetAll
+
+@inject IStringLocalizer<SystemFormDialog> L
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="_model" OnValidSubmit="OnSubmit">
+            <MudStack Spacing="2">
+                <MudTextField @bind-Value="_model.Name" Label="@L[\"Name\"]" Required="true" />
+                <MudTextField @bind-Value="_model.Description" Label="@L[\"Description\"]" />
+                <MudTextField @bind-Value="_model.Category" Label="@L[\"Category\"]" />
+                <MudTextField @bind-Value="_model.Hosting" Label="@L[\"Hosting\"]" />
+                <MudTextField @bind-Value="_model.LifecycleStage" Label="@L[\"Lifecycle\"]" />
+
+                <MudAutocomplete T="SystemDto" 
+                                 ValueChanged="OnParentChanged"
+                                 ToStringFunc="(x => x?.Name ?? string.Empty)"
+                                 SearchFunc="SearchSystems"
+                                 Label="@L[\"Parent System\"]" />
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Default" OnClick="Cancel">@L["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">@L["Save"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int? Id { get; set; }
+
+    private AddEditSystemCommand _model = new();
+    private List<SystemDto> _allSystems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allSystems = (await Mediator.Send(new GetAllSystemsQuery())).ToList();
+        if (Id.HasValue && Id.Value > 0)
+        {
+            var data = await Mediator.Send(new GetSystemByIdQuery { Id = Id.Value });
+            if (data != null)
+            {
+                _model = new AddEditSystemCommand
+                {
+                    Id = data.Id,
+                    Name = data.Name,
+                    Description = data.Description,
+                    Category = data.Category,
+                    Hosting = data.Hosting,
+                    LifecycleStage = data.LifecycleStage,
+                    ParentId = data.ParentId
+                };
+            }
+        }
+    }
+
+    private Task<IEnumerable<SystemDto>> SearchSystems(string value)
+    {
+        var term = value?.ToLowerInvariant() ?? string.Empty;
+        var items = _allSystems.Where(x => (x.Name ?? string.Empty).ToLowerInvariant().Contains(term));
+        return Task.FromResult(items);
+    }
+
+    private void OnParentChanged(SystemDto? parent)
+    {
+        _model.ParentId = parent?.Id;
+    }
+
+    private async Task OnSubmit()
+    {
+        var res = await Mediator.Send(_model);
+        if (res.Succeeded)
+        {
+            Snackbar.Add(L["Saved"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add(res.Messages.FirstOrDefault() ?? L["Failed"], Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    private async Task Submit() => await OnSubmit();
+}
+
