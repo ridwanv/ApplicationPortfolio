@@ -1,0 +1,260 @@
+{
+  "agent_input_output_contracts": {
+    "trend_researcher": {
+      "input": {
+        "concept": "string - feature idea or PRD description",
+        "target_market": "string - intended user base",
+        "timeframe": "string - development timeline"
+      },
+      "output": {
+        "market_validation": {
+          "demand_score": "number 1-10",
+          "trending_keywords": "array of strings",
+          "competitor_analysis": "object",
+          "viral_potential": "string - high/medium/low"
+        },
+        "recommendations": "array of actionable insights",
+        "next_agent": "ux-researcher",
+        "next_agent_context": "market insights for user research validation"
+      }
+    },
+    
+    "ux_researcher": {
+      "input": {
+        "market_insights": "object from trend-researcher",
+        "feature_concept": "string",
+        "user_personas": "array - if known"
+      },
+      "output": {
+        "user_research": {
+          "pain_points": "array of user pain points",
+          "user_journeys": "array of journey maps",
+          "usability_requirements": "array",
+          "accessibility_needs": "array"
+        },
+        "design_recommendations": "array",
+        "next_agent": "sprint-prioritizer",
+        "next_agent_context": "user insights for sprint planning"
+      }
+    },
+
+    "sprint_prioritizer": {
+      "input": {
+        "market_insights": "object",
+        "user_research": "object", 
+        "feature_concept": "string",
+        "constraints": "object - timeline, resources, etc"
+      },
+      "output": {
+        "sprint_plan": {
+          "features": "array of features prioritized by value",
+          "timeline": "6-day breakdown",
+          "dependencies": "array",
+          "risks": "array",
+          "success_metrics": "array"
+        },
+        "next_agents": ["ui-designer", "backend-architect"],
+        "next_agent_context": "prioritized features for design phase"
+      }
+    },
+
+    "ui_designer": {
+      "input": {
+        "sprint_plan": "object",
+        "user_research": "object",
+        "design_system": "MudBlazor components",
+        "accessibility_requirements": "array"
+      },
+      "output": {
+        "ui_design": {
+          "component_specifications": "array of Blazor component designs",
+          "wireframes": "array",
+          "interaction_patterns": "array", 
+          "responsive_breakpoints": "object",
+          "theme_requirements": "object"
+        },
+        "component_list": "array of .razor files to create",
+        "next_agent": "backend-architect",
+        "next_agent_context": "UI requirements for backend design"
+      }
+    },
+
+    "backend_architect": {
+      "input": {
+        "sprint_plan": "object",
+        "ui_requirements": "object from ui-designer",
+        "existing_architecture": "Clean Architecture Blazor patterns"
+      },
+      "output": {
+        "backend_design": {
+          "domain_entities": "array of entity specifications",
+          "application_features": "array of CQRS commands/queries",
+          "api_contracts": "array of endpoint specifications",
+          "database_changes": "array of migration requirements",
+          "integration_points": "array"
+        },
+        "file_structure": "array of files to create/modify",
+        "next_agent": "blazor-clean-architect",
+        "next_agent_context": "backend specifications for implementation"
+      }
+    },
+
+    "whimsy_injector": {
+      "input": {
+        "ui_components": "array from ui-designer",
+        "user_journey": "object from ux-researcher",
+        "brand_personality": "string"
+      },
+      "output": {
+        "delight_enhancements": {
+          "micro_interactions": "array",
+          "animation_specs": "array",
+          "easter_eggs": "array",
+          "personality_touches": "array",
+          "empty_states": "array of engaging empty state designs"
+        },
+        "implementation_notes": "array",
+        "next_agent": "frontend-developer",
+        "next_agent_context": "delight requirements for implementation"
+      }
+    },
+
+    "blazor_clean_architect": {
+      "input": {
+        "backend_design": "object from backend-architect",
+        "ui_design": "object from ui-designer",
+        "delight_enhancements": "object from whimsy-injector",
+        "existing_codebase": "Clean Architecture structure"
+      },
+      "output": {
+        "implementation": {
+          "domain_layer": "array of created/modified files",
+          "application_layer": "array of created/modified files", 
+          "ui_layer": "array of created/modified Blazor components",
+          "configuration_changes": "array"
+        },
+        "integration_points": "array of how components connect",
+        "next_agent": "test-writer-fixer",
+        "next_agent_context": "implemented code for testing"
+      }
+    },
+
+    "frontend_developer": {
+      "input": {
+        "blazor_components": "array from blazor-clean-architect",
+        "delight_enhancements": "object from whimsy-injector",
+        "performance_requirements": "object"
+      },
+      "output": {
+        "frontend_implementation": {
+          "optimized_components": "array",
+          "state_management": "object",
+          "performance_improvements": "array",
+          "responsive_implementation": "object"
+        },
+        "javascript_interop": "array of JS files if needed",
+        "next_agent": "test-writer-fixer",
+        "next_agent_context": "frontend code for testing"
+      }
+    },
+
+    "test_writer_fixer": {
+      "input": {
+        "implemented_code": "object from blazor-clean-architect",
+        "frontend_code": "object from frontend-developer",
+        "requirements": "original feature requirements"
+      },
+      "output": {
+        "test_results": {
+          "unit_tests": "array of test files created",
+          "integration_tests": "array of test files created",
+          "coverage_report": "object",
+          "test_results": "object - pass/fail status",
+          "bugs_found": "array of issues discovered"
+        },
+        "code_fixes": "array of fixes applied",
+        "next_agent": "project-shipper",
+        "next_agent_context": "tested and validated code for deployment"
+      }
+    },
+
+    "project_shipper": {
+      "input": {
+        "tested_code": "object from test-writer-fixer",
+        "feature_requirements": "original requirements",
+        "deployment_config": "existing deployment setup"
+      },
+      "output": {
+        "deployment": {
+          "release_notes": "string",
+          "deployment_steps": "array",
+          "rollback_plan": "object",
+          "feature_flags": "array if applicable",
+          "monitoring_setup": "object"
+        },
+        "launch_checklist": "array",
+        "next_agent": "experiment-tracker",
+        "next_agent_context": "deployed feature for tracking"
+      }
+    },
+
+    "experiment_tracker": {
+      "input": {
+        "deployed_feature": "object from project-shipper",
+        "success_metrics": "array from sprint-prioritizer",
+        "user_segments": "array for A/B testing"
+      },
+      "output": {
+        "experiment_setup": {
+          "feature_flags": "object",
+          "ab_test_configuration": "object",
+          "success_metrics": "array",
+          "tracking_events": "array"
+        },
+        "monitoring_dashboard": "object",
+        "next_agent": "analytics-reporter",
+        "next_agent_context": "experiment configuration for reporting"
+      }
+    },
+
+    "analytics_reporter": {
+      "input": {
+        "experiment_config": "object from experiment-tracker",
+        "baseline_metrics": "object",
+        "reporting_requirements": "array"
+      },
+      "output": {
+        "analytics_setup": {
+          "dashboard_config": "object",
+          "automated_reports": "array",
+          "alert_configuration": "object",
+          "kpi_tracking": "array"
+        },
+        "initial_report": "object with baseline data",
+        "workflow_complete": true
+      }
+    }
+  },
+
+  "workflow_state_management": {
+    "state_file": ".claude/workflow-state.json",
+    "current_phase": "string",
+    "current_agent": "string", 
+    "phase_outputs": "object - stored outputs from each phase",
+    "context_handoffs": "array - context passed between agents"
+  },
+
+  "error_handling": {
+    "agent_failure": {
+      "retry_strategy": "automatic retry once, then escalate",
+      "fallback_agents": {
+        "ui-designer": "frontend-developer",
+        "backend-architect": "blazor-clean-architect"
+      }
+    },
+    "validation_failures": {
+      "test_failures": "return to implementing agent with test results",
+      "integration_issues": "escalate to backend-architect"
+    }
+  }
+}

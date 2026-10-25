@@ -1,0 +1,202 @@
+@page "/pages/estate-documents"
+
+@using CleanArchitecture.Blazor.Application.Features.EstateDocuments.DTOs
+@using CleanArchitecture.Blazor.Domain.Enums
+@using CleanArchitecture.Blazor.Server.UI.Pages.EstateDocuments.Components
+
+@inject IStringLocalizer<EstateDocuments> L
+@inject BlazorDownloadFileService BlazorDownloadFileService
+
+@attribute [Authorize(Policy = Permissions.EstateDocuments.View)]
+<PageTitle>@Title</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudPaper Elevation="2" Class="pa-6 mb-6">
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudStack>
+                <MudText Typo="Typo.h4">Estate Planning Hub</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Create legally-valid estate planning documents in minutes
+                </MudText>
+            </MudStack>
+            <MudButton StartIcon="@Icons.Material.Filled.Add" 
+                      Variant="Variant.Filled" 
+                      Color="Color.Primary"
+                      OnClick="OnCreateDocument">
+                Create New Document
+            </MudButton>
+        </MudStack>
+
+        <!-- Document Type Cards -->
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="1" Class="cursor-pointer hover-lift" @onclick="() => OnCreateDocumentType(EstateDocumentType.Will)">
+                    <MudCardContent Class="text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Large" Color="Color.Primary" Class="mb-3" />
+                        <MudText Typo="Typo.h6">Will-Based Estate Plan</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">$199</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-2">Complete in ~15 minutes</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="1" Class="cursor-pointer hover-lift" @onclick="() => OnCreateDocumentType(EstateDocumentType.IndividualTrust)">
+                    <MudCardContent Class="text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Secondary" Class="mb-3" />
+                        <MudText Typo="Typo.h6">Individual Trust</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">$499</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-2">Advanced protection</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="1" Class="cursor-pointer hover-lift" @onclick="() => OnCreateDocumentType(EstateDocumentType.JointTrust)">
+                    <MudCardContent Class="text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Tertiary" Class="mb-3" />
+                        <MudText Typo="Typo.h6">Joint Trust</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">$799</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-2">For couples</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="1" Class="cursor-pointer hover-lift" @onclick="() => OnCreateDocumentType(EstateDocumentType.PrenuptialAgreement)">
+                    <MudCardContent Class="text-center">
+                        <MudIcon Icon="@Icons.Material.Filled.Handshake" Size="Size.Large" Color="Color.Warning" Class="mb-3" />
+                        <MudText Typo="Typo.h6">Prenuptial Agreement</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">$999</MudText>
+                        <MudText Typo="Typo.caption" Class="mt-2">Protect your assets</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Inheritance Calculator Card -->
+    <MudPaper Elevation="2" Class="pa-6 mb-6">
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudStack>
+                <MudText Typo="Typo.h6">Inheritance Calculator</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Calculate how your assets will be distributed according to your wishes
+                </MudText>
+            </MudStack>
+            <MudButton StartIcon="@Icons.Material.Filled.Calculate" 
+                      Variant="Variant.Outlined" 
+                      Color="Color.Primary"
+                      OnClick="OnCalculateInheritance">
+                Try Calculator
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Recent Documents -->
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudText Typo="Typo.h6" Class="mb-4">Your Documents</MudText>
+        
+        <MudDataGrid ServerData="@(ServerReload)"
+                     FixedHeader="true"
+                     FixedFooter="false"
+                     Virtualize="false"
+                     Loading="@_loading"
+                     T="EstateDocumentDto"
+                     SelectOnRowClick="false"
+                     RowClick="@(s=>OnRowClick(s.Item))"
+                     Hover="true" 
+                     @ref="_documentsGrid">
+            <ToolBarContent>
+                <MudToolBar Dense>
+                    <MudButton Disabled="@_loading"
+                               OnClick="@OnRefresh"
+                               StartIcon="@Icons.Material.Outlined.Refresh">
+                        Refresh
+                    </MudButton>
+                </MudToolBar>
+            </ToolBarContent>
+            
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Title="Document Name" />
+                <PropertyColumn Property="x => x.Type" Title="Type" />
+                <PropertyColumn Property="x => x.Status" Title="Status">
+                    <CellTemplate>
+                        <MudChip Size="Size.Small" 
+                                Color="@GetStatusColor(context.Item.Status)">
+                            @context.Item.Status
+                        </MudChip>
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.Price" Title="Price" Format="C" />
+                <PropertyColumn Property="x => x.CompletedDate" Title="Completed" Format="d" />
+            </Columns>
+        </MudDataGrid>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    private string Title => L["Estate Documents"];
+    private bool _loading;
+    private MudDataGrid<EstateDocumentDto>? _documentsGrid;
+
+    private async Task<GridData<EstateDocumentDto>> ServerReload(GridState<EstateDocumentDto> state)
+    {
+        // Placeholder - implement actual data loading
+        return new GridData<EstateDocumentDto>
+        {
+            Items = new List<EstateDocumentDto>(),
+            TotalItems = 0
+        };
+    }
+
+    private void OnCreateDocument()
+    {
+        // Navigate to document creation wizard
+    }
+
+    private void OnCreateDocumentType(EstateDocumentType type)
+    {
+        // Navigate to specific document type creation
+    }
+
+    private void OnCalculateInheritance()
+    {
+        // Open inheritance calculator
+    }
+
+    private void OnRowClick(EstateDocumentDto document)
+    {
+        // Navigate to document details
+    }
+
+    private void OnRefresh()
+    {
+        _documentsGrid?.ReloadServerData();
+    }
+
+    private Color GetStatusColor(EstateDocumentStatus status)
+    {
+        return status switch
+        {
+            EstateDocumentStatus.Draft => Color.Default,
+            EstateDocumentStatus.InProgress => Color.Info,
+            EstateDocumentStatus.ReviewRequired => Color.Warning,
+            EstateDocumentStatus.Completed => Color.Success,
+            EstateDocumentStatus.Signed => Color.Success,
+            EstateDocumentStatus.Archived => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+}

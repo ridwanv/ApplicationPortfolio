@@ -1,0 +1,323 @@
+@page "/pages/inheritance-calculator"
+
+@using CleanArchitecture.Blazor.Application.Features.EstateDocuments.DTOs
+@using CleanArchitecture.Blazor.Domain.Enums
+
+@inject IStringLocalizer<InheritanceCalculator> L
+
+<PageTitle>Inheritance Calculator - Estate Planning</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Elevation="2" Class="pa-6">
+        <MudStack Spacing="4">
+            <!-- Header -->
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudStack>
+                    <MudText Typo="Typo.h4">Inheritance Calculator</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary">
+                        Calculate how your assets will be distributed among beneficiaries
+                    </MudText>
+                </MudStack>
+                <MudButton StartIcon="@Icons.Material.Filled.Refresh" 
+                          Variant="Variant.Outlined"
+                          OnClick="ResetCalculator">
+                    Reset
+                </MudButton>
+            </MudStack>
+
+            <MudDivider />
+
+            <!-- Assets Section -->
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.h6">Assets</MudText>
+                            <MudButton StartIcon="@Icons.Material.Filled.Add" 
+                                      Variant="Variant.Text"
+                                      Size="Size.Small"
+                                      OnClick="AddAsset">
+                                Add Asset
+                            </MudButton>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_assets.Any())
+                    {
+                        <MudStack Spacing="2">
+                            @foreach (var asset in _assets)
+                            {
+                                <MudPaper Class="pa-3" Elevation="0" Style="border: 1px solid var(--mud-palette-divider)">
+                                    <MudGrid AlignItems="Center">
+                                        <MudItem xs="12" sm="4">
+                                            <MudTextField @bind-Value="asset.Name" 
+                                                        Label="Asset Name" 
+                                                        Dense="true" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudSelect @bind-Value="asset.Type" 
+                                                     Label="Type" 
+                                                     Dense="true">
+                                                @foreach (AssetType type in Enum.GetValues<AssetType>())
+                                                {
+                                                    <MudSelectItem Value="type">@type</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudNumericField @bind-Value="asset.EstimatedValue" 
+                                                           Label="Estimated Value" 
+                                                           Format="C"
+                                                           Dense="true"
+                                                           ValueChanged="CalculateInheritance" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="2">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                         Color="Color.Error" 
+                                                         OnClick="() => RemoveAsset(asset)" />
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                        
+                        <MudPaper Class="pa-3 mt-3" Elevation="0" Style="background-color: var(--mud-palette-surface-variant)">
+                            <MudStack Row Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.subtitle1"><strong>Total Assets:</strong></MudText>
+                                <MudText Typo="Typo.subtitle1" Color="Color.Primary">
+                                    <strong>@_totalAssets.ToString("C")</strong>
+                                </MudText>
+                            </MudStack>
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info">
+                            Add your assets to start calculating inheritance distribution.
+                        </MudAlert>
+                    }
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Debts Section -->
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Debts & Expenses</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudNumericField @bind-Value="_totalDebts" 
+                                   Label="Total Debts and Final Expenses" 
+                                   Format="C"
+                                   ValueChanged="CalculateInheritance"
+                                   HelperText="Include mortgages, loans, funeral expenses, etc." />
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Beneficiaries Section -->
+            <MudCard Elevation="1">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.h6">Beneficiaries</MudText>
+                            <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" 
+                                      Variant="Variant.Text"
+                                      Size="Size.Small"
+                                      OnClick="AddBeneficiary">
+                                Add Beneficiary
+                            </MudButton>
+                        </MudStack>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_beneficiaries.Any())
+                    {
+                        <MudStack Spacing="2">
+                            @foreach (var beneficiary in _beneficiaries)
+                            {
+                                <MudPaper Class="pa-3" Elevation="0" Style="border: 1px solid var(--mud-palette-divider)">
+                                    <MudGrid AlignItems="Center">
+                                        <MudItem xs="12" sm="3">
+                                            <MudTextField @bind-Value="beneficiary.Name" 
+                                                        Label="Beneficiary Name" 
+                                                        Dense="true" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudTextField @bind-Value="beneficiary.Relationship" 
+                                                        Label="Relationship" 
+                                                        Dense="true" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="2">
+                                            <MudNumericField @bind-Value="beneficiary.InheritancePercentage" 
+                                                           Label="Percentage" 
+                                                           Suffix="%"
+                                                           Min="0" Max="100"
+                                                           Dense="true"
+                                                           ValueChanged="CalculateInheritance" />
+                                        </MudItem>
+                                        <MudItem xs="12" sm="3">
+                                            <MudText Typo="Typo.body2" Color="Color.Primary">
+                                                <strong>@CalculateInheritanceAmount(beneficiary).ToString("C")</strong>
+                                            </MudText>
+                                        </MudItem>
+                                        <MudItem xs="12" sm="1">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                         Color="Color.Error" 
+                                                         OnClick="() => RemoveBeneficiary(beneficiary)" />
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                        
+                        @{
+                            var totalPercentage = _beneficiaries.Sum(b => b.InheritancePercentage);
+                        }
+                        
+                        <MudPaper Class="pa-3 mt-3" Elevation="0" 
+                                Style="@($"background-color: {(totalPercentage == 100 ? "var(--mud-palette-success-lighten)" : "var(--mud-palette-warning-lighten)")}")">
+                            <MudStack Row Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.subtitle1"><strong>Total Distribution:</strong></MudText>
+                                <MudText Typo="Typo.subtitle1" Color="@(totalPercentage == 100 ? Color.Success : Color.Warning)">
+                                    <strong>@totalPercentage%</strong>
+                                </MudText>
+                            </MudStack>
+                            @if (totalPercentage != 100)
+                            {
+                                <MudAlert Severity="Severity.Warning" Class="mt-2">
+                                    Total percentage should equal 100%. Remaining: @(100 - totalPercentage)%
+                                </MudAlert>
+                            }
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info">
+                            Add beneficiaries to see inheritance distribution.
+                        </MudAlert>
+                    }
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Results Summary -->
+            @if (_assets.Any() && _beneficiaries.Any())
+            {
+                <MudCard Elevation="2" Style="background: linear-gradient(135deg, var(--mud-palette-primary-lighten) 0%, var(--mud-palette-secondary-lighten) 100%)">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-3" Color="Color.Inherit">Estate Summary</MudText>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudStack Spacing="1" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.caption" Color="Color.Inherit">Total Assets</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Inherit">@_totalAssets.ToString("C")</MudText>
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudStack Spacing="1" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.caption" Color="Color.Inherit">Total Debts</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Inherit">@_totalDebts.ToString("C")</MudText>
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudStack Spacing="1" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.caption" Color="Color.Inherit">Net Estate</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Inherit">@_netEstate.ToString("C")</MudText>
+                                </MudStack>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="3">
+                                <MudStack Spacing="1" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.caption" Color="Color.Inherit">Beneficiaries</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Inherit">@_beneficiaries.Count</MudText>
+                                </MudStack>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            }
+
+            <!-- Call to Action -->
+            <MudPaper Class="pa-4" Elevation="1" Style="border: 2px dashed var(--mud-palette-primary)">
+                <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Ready to Create Your Estate Plan?</MudText>
+                    <MudText Typo="Typo.body1" Align="Align.Center" Color="Color.Secondary">
+                        Turn this calculation into a legally-valid estate planning document
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              StartIcon="@Icons.Material.Filled.Description"
+                              OnClick="CreateEstateDocument"
+                              Size="Size.Large">
+                        Create Estate Plan
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<EstateAssetDto> _assets = new();
+    private List<BeneficiaryDto> _beneficiaries = new();
+    private decimal _totalDebts = 0;
+    private decimal _totalAssets => _assets.Sum(a => a.EstimatedValue);
+    private decimal _netEstate => Math.Max(0, _totalAssets - _totalDebts);
+
+    private void AddAsset()
+    {
+        _assets.Add(new EstateAssetDto
+        {
+            Name = $"Asset {_assets.Count + 1}",
+            Type = AssetType.BankAccount,
+            EstimatedValue = 0
+        });
+    }
+
+    private void RemoveAsset(EstateAssetDto asset)
+    {
+        _assets.Remove(asset);
+        CalculateInheritance();
+    }
+
+    private void AddBeneficiary()
+    {
+        _beneficiaries.Add(new BeneficiaryDto
+        {
+            Name = $"Beneficiary {_beneficiaries.Count + 1}",
+            Relationship = "Family",
+            Type = BeneficiaryType.Primary,
+            InheritancePercentage = 0
+        });
+    }
+
+    private void RemoveBeneficiary(BeneficiaryDto beneficiary)
+    {
+        _beneficiaries.Remove(beneficiary);
+        CalculateInheritance();
+    }
+
+    private decimal CalculateInheritanceAmount(BeneficiaryDto beneficiary)
+    {
+        return (_netEstate * beneficiary.InheritancePercentage) / 100;
+    }
+
+    private void CalculateInheritance()
+    {
+        // Trigger UI update
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ResetCalculator()
+    {
+        _assets.Clear();
+        _beneficiaries.Clear();
+        _totalDebts = 0;
+    }
+
+    private void CreateEstateDocument()
+    {
+        // Navigate to estate document creation with pre-filled data
+        // This could pass the calculation data as parameters
+    }
+}

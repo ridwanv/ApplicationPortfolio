@@ -1,0 +1,100 @@
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Commands.AddEdit
+@inject IStringLocalizer<OrgSystems> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@_model" @ref="@_form" Validation="@(Validator.ValidateValue(_model))">
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudTextField Label="@L["System Name"]" @bind-Value="_model.Name"
+                                  For="@(() => _model.Name)"
+                                  Required="true"
+                                  RequiredError="@L["system name is required!"]">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@L["Description"]"
+                                  Lines="3"
+                                  For="@(() => _model.Description)"
+                                  @bind-Value="_model.Description">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="SystemCriticality" Label="@L["Criticality"]" @bind-Value="_model.Criticality">
+                        @foreach (var value in Enum.GetValues<SystemCriticality>())
+                        {
+                            <MudSelectItem Value="@value">@value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="SystemLifecycleStatus" Label="@L["Lifecycle Status"]" @bind-Value="_model.LifecycleStatus">
+                        @foreach (var value in Enum.GetValues<SystemLifecycleStatus>())
+                        {
+                            <MudSelectItem Value="@value">@value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@L["Tags (comma separated)"]" @bind-Value="_tagsText">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@L["Dependencies (comma separated)"]" @bind-Value="_model.Dependencies">
+                    </MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@ConstantString.Cancel</MudButton>
+        <MudLoadingButton Loading="@_saving" OnClick="Submit">@ConstantString.Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [EditorRequired][Parameter] public AddEditOrgSystemCommand _model { get; set; } = default!;
+    [Parameter] public Action? Refresh { get; set; }
+
+    private MudForm? _form;
+    private bool _saving;
+    private string? _tagsText
+    {
+        get => _model.Tags is null ? string.Empty : string.Join(",", _model.Tags);
+        set => _model.Tags = string.IsNullOrWhiteSpace(value) ? new List<string>() : value!.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
+    }
+
+    private async Task Submit()
+    {
+        try
+        {
+            _saving = true;
+            await _form!.Validate().ConfigureAwait(false);
+            if (!_form!.IsValid) return;
+            var result = await Mediator.Send(_model);
+            result.Match(
+                data =>
+                {
+                    MudDialog.Close(DialogResult.Ok(true));
+                    Snackbar.Add(ConstantString.SaveSuccess, Severity.Info);
+                },
+                errors =>
+                {
+                    Snackbar.Add(errors, Severity.Error);
+                });
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
+
+

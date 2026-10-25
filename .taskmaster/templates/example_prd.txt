@@ -1,47 +1,140 @@
-<context>
-# Overview  
-[Provide a high-level overview of your product here. Explain what problem it solves, who it's for, and why it's valuable.]
+# Product Requirements Document (PRD)
 
-# Core Features  
-[List and describe the main features of your product. For each feature, include:
-- What it does
-- Why it's important
-- How it works at a high level]
+## Overview  
+This product replaces the Excel-based system register with an **Application Portfolio Management (APM) application**.  
+It solves the difficulty of tracking attributes across all systems, adding new attributes and backfilling consistently, and enforcing access control.  
 
-# User Experience  
-[Describe the user journey and experience. Include:
-- User personas
-- Key user flows
-- UI/UX considerations]
-</context>
-<PRD>
-# Technical Architecture  
-[Outline the technical implementation details:
-- System components
-- Data models
-- APIs and integrations
-- Infrastructure requirements]
+**Primary Audience**:  
+- CIOs / IT Leadership  
+- Enterprise Architects  
+- System Owners / Application Managers  
+- Change Managers / Release Managers  
 
-# Development Roadmap  
-[Break down the development process into phases:
-- MVP requirements
-- Future enhancements
-- Do not think about timelines whatsoever -- all that matters is scope and detailing exactly what needs to be build in each phase so it can later be cut up into tasks]
+**Value Proposition**:  
+- CIOs get a **single source of truth** for reporting & decision-making.  
+- Enterprise Architects can **map dependencies and plan roadmaps**.  
+- System Owners have a **clear view of responsibilities and attributes**.  
 
-# Logical Dependency Chain
-[Define the logical order of development:
-- Which features need to be built first (foundation)
-- Getting as quickly as possible to something usable/visible front end that works
-- Properly pacing and scoping each feature so it is atomic but can also be built upon and improved as development approaches]
+---
 
-# Risks and Mitigations  
-[Identify potential risks and how they'll be addressed:
-- Technical challenges
-- Figuring out the MVP that we can build upon
-- Resource constraints]
+## Core Features  
 
-# Appendix  
-[Include any additional information:
-- Research findings
-- Technical specifications]
-</PRD>
+### System Registry  
+- **What it does**: Central catalog of all systems, structured hierarchically with subsystems.  
+- **Why important**: Provides a single source of truth.  
+- **How it works**: Users can create/edit systems, group subsystems, and view in hierarchy.  
+
+### Attribute Management  
+- **What it does**: Allows new attributes to be added dynamically and backfilled across systems.  
+- **Why important**: Supports evolving governance requirements.  
+- **How it works**: When a new attribute is created, system prompts backfill across all systems.  
+
+### Access Control  
+- **What it does**: Role-based permissions for CIOs, architects, owners, and change managers.  
+- **Why important**: Ensures correct governance and security.  
+- **How it works**: CIOs = full access; Architects = edit + dependencies; Owners = their systems only; Change Managers = audit view.  
+
+### Dependency Mapping  
+- **What it does**: Tracks and visualizes relationships between systems and subsystems.  
+- **Why important**: Helps architects plan roadmaps and understand impacts.  
+- **How it works**: Supports both table-based view and visual diagrams.  
+
+### Change Workflow (Logging)  
+- **What it does**: Records all changes for auditing.  
+- **Why important**: Provides accountability without blocking edits.  
+- **How it works**: Audit log stores who changed what, when.  
+
+### Reporting & Dashboards  
+- **What it does**: Provides portfolio health views for CIOs and Architects.  
+- **Why important**: Enables decision-making at leadership level.  
+- **How it works**: Dashboards show system criticality heatmaps, hosting distribution, roadmap timelines, compliance gaps.  
+
+---
+
+## User Experience  
+
+**Personas**  
+- CIOs: need reports for decision-making.  
+- Enterprise Architects: need dependency mapping & planning views.  
+- System Owners: need to manage and update system records.  
+- Change Managers: need logs to track modifications.  
+
+**Key User Flows**  
+1. Add a new system and assign an owner.  
+2. Update attributes across all systems.  
+3. View dependencies for a system.  
+4. Run dashboards and reports.  
+5. Search and filter systems.  
+
+**UX Considerations**  
+- Enterprise-style UI with structured forms, data tables, and dashboards.  
+
+---
+
+## Technical Architecture  
+
+**Stack**  
+- **Frontend**: Blazor Server  
+- **Backend**: .NET  
+- **Database**: SQL Server  
+- **Hosting**: Azure  
+
+**Core Data Models**  
+- **System** (core record)  
+- **Subsystem/Application** (child system)  
+- **Attributes** (flexible metadata model)  
+- **Owner/User** (role-based access)  
+- **Dependency** (system-to-system relationships)  
+- **Audit Log** (change tracking)  
+
+**Integrations**  
+- None for MVP (self-contained).  
+
+---
+
+## Development Roadmap  
+
+**MVP Scope**  
+- System Registry (hierarchy)  
+- Attribute Management (add + backfill)  
+- Role-based Access Control  
+- Dependency Mapping (table + visual)  
+- Change Logging (audit trail)  
+- Reporting/Dashboards  
+- Core Data Models (system, subsystem, attributes, user, dependency, audit log)  
+- Blazor Server frontend, .NET backend, SQL DB, Azure hosting  
+
+**Future Enhancements**  
+- Workflow approvals (edit requests/approvals)  
+- Advanced analytics & portfolio insights  
+- API integrations (CMDB, ITSM, Project Portfolio tools)  
+- Excel import/export and sync  
+- Compliance checks  
+
+---
+
+## Logical Dependency Chain  
+
+1. Core Data Models & Database Setup  
+2. System Registry UI (CRUD + hierarchy)  
+3. Attribute Management (add + backfill)  
+4. Access Control (role-based)  
+5. Dependency Mapping (table + diagram)  
+6. Change Logging (audit trail)  
+7. Reporting & Dashboards  
+
+---
+
+## Risks and Mitigations  
+
+- **Technical challenge**: Flexible attribute management could get messy → Mitigation: strong schema design with metadata model.  
+- **MVP risk**: Dependency mapping visualizations may be complex → Mitigation: start with table, add visual later.  
+- **Resource constraint**: Role-based access + logging may delay delivery → Mitigation: start with simple CRUD + logs.  
+- **Adoption risk**: Users may resist moving from Excel → Mitigation: provide clean import/export and onboarding.  
+
+---
+
+## Appendix  
+- Excel system register used as source of truth.  
+- CIO/Architect reporting needs (criticality, hosting, dependencies).  
+- System hierarchy and attribute extensibility defined in MVP.  

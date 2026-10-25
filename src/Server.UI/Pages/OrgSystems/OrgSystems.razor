@@ -1,0 +1,314 @@
+@page "/pages/systems"
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.DTOs
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Queries.Export
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Queries.Pagination
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Caching
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Commands.AddEdit
+@using CleanArchitecture.Blazor.Application.Features.OrgSystems.Commands.Delete
+
+@attribute [Authorize(Policy = Permissions.Systems.View)]
+@inject IStringLocalizer<OrgSystems> L
+@inject BlazorDownloadFileService BlazorDownloadFileService
+
+<PageTitle>@Title</PageTitle>
+
+<MudDataGrid ServerData="@(ServerReload)"
+             FixedHeader="true"
+             FixedFooter="false"
+             @bind-RowsPerPage="_defaultPageSize"
+             Loading="@_loading"
+             MultiSelection="true"
+             @bind-SelectedItems="_selectedItems"
+             ColumnResizeMode="ResizeMode.Column"
+             Hover="true" @ref="_grid">
+    <ToolBarContent>
+        <MudStack Row Spacing="0" Class="flex-grow-1" Justify="Justify.SpaceBetween">
+            <MudStack Row AlignItems="AlignItems.Start">
+                <MudIcon Icon="@Icons.Material.Filled.Hub" Size="Size.Large" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">@L[_currentDto.GetClassDescription()]</MudText>
+                </MudStack>
+            </MudStack>
+            <MudStack Spacing="0" AlignItems="AlignItems.End">
+                <MudToolBar Dense WrapContent="true" Class="py-1 px-0">
+                    <MudButton Disabled="@_loading"
+                               OnClick="@(() => OnRefresh())"
+                               StartIcon="@Icons.Material.Outlined.Refresh">
+                        @ConstantString.Refresh
+                    </MudButton>
+                    @if (_accessRights.Create)
+                    {
+                        <MudButton StartIcon="@Icons.Material.Outlined.Add"
+                                   OnClick="OnCreate">
+                            @ConstantString.New
+                        </MudButton>
+                    }
+                    <MudMenu TransformOrigin="Origin.BottomRight"
+                             AnchorOrigin="Origin.BottomRight"
+                             EndIcon="@Icons.Material.Filled.MoreVert"
+                             Label="@ConstantString.More">
+                        @if (_accessRights.Delete)
+                        {
+                            <MudMenuItem Disabled="@(!(_selectedItems.Count > 0))"
+                                         OnClick="OnDeleteSelected">
+                                @ConstantString.Delete
+                            </MudMenuItem>
+                        }
+                        @if (_accessRights.Export)
+                        {
+                            <MudMenuItem Disabled="@_exporting" OnClick="OnExport">
+                                @ConstantString.Export
+                            </MudMenuItem>
+                            <MudMenuItem Disabled="@_pdfExporting" OnClick="OnExportPDF">
+                                @ConstantString.ExportPDF
+                            </MudMenuItem>
+                        }
+                    </MudMenu>
+                </MudToolBar>
+                <MudStack Row Spacing="1">
+                    <MudTextField T="string"
+                                  ValueChanged="@(s => OnSearch(s))"
+                                  Value="@_query.Keyword"
+                                  Placeholder="@ConstantString.Search"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Small">
+                    </MudTextField>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn ShowInFooter="false"></SelectColumn>
+        <TemplateColumn HeaderStyle="width:60px" Title="@ConstantString.Actions" Sortable="false">
+            <CellTemplate>
+                @if (_accessRights.Edit || _accessRights.Delete)
+                {
+                    <MudMenu Icon="@Icons.Material.Filled.Edit"
+                             Variant="Variant.Outlined"
+                             Size="Size.Small"
+                             Dense="true"
+                             IconColor="Color.Info"
+                             AnchorOrigin="Origin.CenterLeft">
+                        @if (_accessRights.Edit)
+                        {
+                            <MudMenuItem OnClick="@(() => OnEdit(context.Item))">
+                                @ConstantString.Edit
+                            </MudMenuItem>
+                        }
+                        @if (_accessRights.Delete)
+                        {
+                            <MudMenuItem OnClick="@(() => OnDelete(context.Item))">
+                                @ConstantString.Delete
+                            </MudMenuItem>
+                        }
+                    </MudMenu>
+                }
+                else
+                {
+                    <MudTooltip Text="@ConstantString.NoAllowed" Delay="300">
+                        <MudIconButton Variant="Variant.Outlined"
+                                       Disabled="true"
+                                       Icon="@Icons.Material.Filled.DoNotTouch"
+                                       Size="Size.Small"
+                                       Color="Color.Surface">
+                        </MudIconButton>
+                    </MudTooltip>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Name" Title="@L[_currentDto.GetMemberDescription(x => x.Name)]" />
+        <PropertyColumn Property="x => x.Description" Title="@L[_currentDto.GetMemberDescription(x => x.Description)]" />
+        <PropertyColumn Property="x => x.Criticality" Title="@L[_currentDto.GetMemberDescription(x => x.Criticality)]" />
+        <PropertyColumn Property="x => x.LifecycleStatus" Title="@L[_currentDto.GetMemberDescription(x => x.LifecycleStatus)]" />
+    </Columns>
+    <NoRecordsContent>
+        <MudText>@ConstantString.NoRecords</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>@ConstantString.Loading</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100 })" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    [CascadingParameter] private UserProfile? UserProfile { get; set; }
+    public string? Title { get; private set; }
+    private HashSet<OrgSystemDto> _selectedItems = new();
+    private MudDataGrid<OrgSystemDto> _grid = default!;
+    private OrgSystemDto _currentDto = new();
+    private OrgSystemsAccessRights _accessRights = new();
+    private bool _loading;
+    private bool _exporting;
+    private bool _pdfExporting;
+    private int _defaultPageSize = 15;
+
+    private OrgSystemsWithPaginationQuery _query { get; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Title = L[_currentDto.GetClassDescription()];
+        _accessRights = await PermissionService.GetAccessRightsAsync<OrgSystemsAccessRights>();
+    }
+
+    private async Task<GridData<OrgSystemDto>> ServerReload(GridState<OrgSystemDto> state)
+    {
+        try
+        {
+            _loading = true;
+            _query.CurrentUser = UserProfile;
+            _query.OrderBy = state.SortDefinitions.FirstOrDefault()?.SortBy ?? "Id";
+            _query.SortDirection = state.SortDefinitions.FirstOrDefault()?.Descending ?? true
+                ? SortDirection.Descending.ToString()
+                : SortDirection.Ascending.ToString();
+            _query.PageNumber = state.Page + 1;
+            _query.PageSize = state.PageSize;
+            var result = await Mediator.Send(_query).ConfigureAwait(false);
+            return new GridData<OrgSystemDto> { TotalItems = result.TotalItems, Items = result.Items };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OnConditionChanged(string condition)
+    {
+        InvokeAsync(_grid.ReloadServerData);
+    }
+
+    private async Task OnSearch(string text)
+    {
+        _selectedItems = new HashSet<OrgSystemDto>();
+        _query.Keyword = text;
+        await _grid.ReloadServerData();
+    }
+
+    private async Task OnRefresh()
+    {
+        OrgSystemCacheKey.Refresh();
+        _selectedItems = new HashSet<OrgSystemDto>();
+        _query.Keyword = string.Empty;
+        await _grid.ReloadServerData();
+    }
+
+    private async Task ShowForm(string title, AddEditOrgSystemCommand command)
+    {
+        var parameters = new DialogParameters<OrgSystemFormDialog>
+        {
+            { x => x.Refresh, () => _grid.ReloadServerData() },
+            { x => x._model, command }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<OrgSystemFormDialog>(title, parameters, options);
+        var state = await dialog.Result;
+        if (state is not null && !state.Canceled)
+        {
+            await _grid.ReloadServerData();
+            _selectedItems.Clear();
+        }
+    }
+
+    private async Task OnCreate()
+    {
+        var command = new AddEditOrgSystemCommand();
+        await ShowForm(string.Format(ConstantString.CreateAnItem, L["System"]), command);
+    }
+
+    private async Task OnEdit(OrgSystemDto dto)
+    {
+        var command = Mapper.Map<AddEditOrgSystemCommand>(dto);
+        await ShowForm(string.Format(ConstantString.EditTheItem, L["System"]), command);
+    }
+
+    private async Task OnDelete(OrgSystemDto dto)
+    {
+        var contentText = string.Format(ConstantString.DeleteConfirmation, dto.Name);
+        var command = new DeleteOrgSystemCommand(new[] { dto.Id });
+        await DialogServiceHelper.ShowDeleteConfirmationDialogAsync(command, ConstantString.DeleteConfirmationTitle, contentText, async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await _grid.ReloadServerData();
+                _selectedItems.Clear();
+            });
+        });
+    }
+
+    private async Task OnDeleteSelected()
+    {
+        var contentText = string.Format(ConstantString.DeleteConfirmWithSelected, _selectedItems.Count);
+        var command = new DeleteOrgSystemCommand(_selectedItems.Select(x => x.Id).ToArray());
+        await DialogServiceHelper.ShowDeleteConfirmationDialogAsync(command, ConstantString.DeleteConfirmationTitle, contentText, async () =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await _grid.ReloadServerData();
+                _selectedItems.Clear();
+            });
+        });
+    }
+
+    private async Task OnExport()
+    {
+        _exporting = true;
+        var request = new ExportOrgSystemsQuery
+        {
+            Keyword = _query.Keyword,
+            Criticality = _query.Criticality,
+            LifecycleStatus = _query.LifecycleStatus,
+            OwnerId = _query.OwnerId,
+            OrderBy = _grid.SortDefinitions.Values.FirstOrDefault()?.SortBy ?? "Id",
+            SortDirection = _grid.SortDefinitions.Values.FirstOrDefault()?.Descending ?? false
+                ? SortDirection.Descending.ToString()
+                : SortDirection.Ascending.ToString(),
+            CurrentUser = UserProfile,
+            ExportType = ExportType.Excel
+        };
+        var result = await Mediator.Send(request);
+        if (result.Succeeded)
+        {
+            await BlazorDownloadFileService.DownloadFileAsync($"{L["Systems"]}.xlsx", result.Data!, "application/octet-stream");
+            Snackbar.Add($"{ConstantString.ExportSuccess}", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add($"{result.ErrorMessage}", Severity.Error);
+        }
+        _exporting = false;
+    }
+
+    private async Task OnExportPDF()
+    {
+        _pdfExporting = true;
+        var request = new ExportOrgSystemsQuery
+        {
+            Keyword = _query.Keyword,
+            Criticality = _query.Criticality,
+            LifecycleStatus = _query.LifecycleStatus,
+            OwnerId = _query.OwnerId,
+            OrderBy = _grid.SortDefinitions.Values.FirstOrDefault()?.SortBy ?? "Id",
+            SortDirection = _grid.SortDefinitions.Values.FirstOrDefault()?.Descending ?? false
+                ? SortDirection.Descending.ToString()
+                : SortDirection.Ascending.ToString(),
+            CurrentUser = UserProfile,
+            ExportType = ExportType.PDF
+        };
+        var result = await Mediator.Send(request);
+        if (result.Succeeded)
+        {
+            await BlazorDownloadFileService.DownloadFileAsync($"{L["Systems"]}.pdf", result.Data!, "application/octet-stream");
+            Snackbar.Add($"{ConstantString.ExportSuccess}", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add($"{result.ErrorMessage}", Severity.Error);
+        }
+        _pdfExporting = false;
+    }
+}
+
+

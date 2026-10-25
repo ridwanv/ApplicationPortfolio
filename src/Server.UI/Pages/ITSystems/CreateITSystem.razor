@@ -1,0 +1,153 @@
+@page "/pages/itsystems/create"
+
+@using CleanArchitecture.Blazor.Application.Features.ITSystems.Commands.Create
+
+@inject IStringLocalizer<CreateITSystem> L
+@attribute [Authorize(Policy = Permissions.ITSystems.Create)]
+
+<PageTitle>Create IT System</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h5" Class="mb-4">Create New IT System</MudText>
+        
+        <EditForm Model="@_model" OnValidSubmit="OnSubmit">
+            <FluentValidationValidator />
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Name"
+                              For="@(() => _model.Name)"
+                              Label="Name"
+                              Required="true" />
+
+                <MudTextField @bind-Value="_model.Description"
+                              For="@(() => _model.Description)"
+                              Label="Description"
+                              Lines="3" />
+
+                <MudStack Row Spacing="2">
+                    <MudTextField @bind-Value="_model.Owner"
+                                  For="@(() => _model.Owner)"
+                                  Label="Owner" />
+
+                    <MudTextField @bind-Value="_model.Version"
+                                  For="@(() => _model.Version)"
+                                  Label="Version" />
+                </MudStack>
+
+                <MudStack Row Spacing="2">
+                    <MudSelect @bind-Value="_model.Status"
+                               For="@(() => _model.Status)"
+                               Label="Status">
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
+                        <MudSelectItem Value="@("Deprecated")">Deprecated</MudSelectItem>
+                        <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                    </MudSelect>
+
+                    <MudSelect @bind-Value="_model.CriticalityLevel"
+                               For="@(() => _model.CriticalityLevel)"
+                               Label="Criticality Level">
+                        <MudSelectItem Value="@("Critical")">Critical</MudSelectItem>
+                        <MudSelectItem Value="@("High")">High</MudSelectItem>
+                        <MudSelectItem Value="@("Medium")">Medium</MudSelectItem>
+                        <MudSelectItem Value="@("Low")">Low</MudSelectItem>
+                    </MudSelect>
+                </MudStack>
+
+                <MudStack Row Spacing="2">
+                    <MudTextField @bind-Value="_model.Category"
+                                  For="@(() => _model.Category)"
+                                  Label="Category" />
+
+                    <MudTextField @bind-Value="_model.Vendor"
+                                  For="@(() => _model.Vendor)"
+                                  Label="Vendor" />
+                </MudStack>
+
+                <MudStack Row Spacing="2">
+                    <MudDatePicker @bind-Date="_model.InstallationDate"
+                                   For="@(() => _model.InstallationDate)"
+                                   Label="Installation Date" />
+
+                    <MudDatePicker @bind-Date="_model.LastMaintenanceDate"
+                                   For="@(() => _model.LastMaintenanceDate)"
+                                   Label="Last Maintenance Date" />
+                </MudStack>
+
+                <MudNumericField @bind-Value="_model.AnnualCost"
+                                 For="@(() => _model.AnnualCost)"
+                                 Label="Annual Cost"
+                                 Format="C"
+                                 Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+
+                <MudTextField @bind-Value="_model.ComplianceRequirements"
+                              For="@(() => _model.ComplianceRequirements)"
+                              Label="Compliance Requirements"
+                              Lines="3" />
+
+                <MudTextField @bind-Value="_model.MaintenanceNotes"
+                              For="@(() => _model.MaintenanceNotes)"
+                              Label="Maintenance Notes"
+                              Lines="3" />
+
+                <MudStack Row Spacing="2" Class="mt-4">
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Disabled="_loading"
+                               StartIcon="@Icons.Material.Filled.Save">
+                        @if (_loading)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                            <span class="ms-2">Creating...</span>
+                        }
+                        else
+                        {
+                            <span>Create IT System</span>
+                        }
+                    </MudButton>
+                    
+                    <MudButton Variant="Variant.Text"
+                               OnClick="Cancel"
+                               StartIcon="@Icons.Material.Filled.Cancel">
+                        Cancel
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreateITSystemCommand _model = new();
+    private bool _loading = false;
+
+    private async Task OnSubmit()
+    {
+        try
+        {
+            _loading = true;
+            var result = await Mediator.Send(_model);
+            await result.MatchAsync(
+                async data =>
+                {
+                    Snackbar.Add("IT System created successfully", Severity.Success);
+                    Navigation.NavigateTo("/pages/itsystems");
+                },
+                errors =>
+                {
+                    Snackbar.Add($"Error: {errors}", Severity.Error);
+                    return Task.CompletedTask;
+                });
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/pages/itsystems");
+    }
+}

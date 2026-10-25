@@ -1,0 +1,174 @@
+@using CleanArchitecture.Blazor.Application.Features.ITSystems.Commands.Create
+@using CleanArchitecture.Blazor.Application.Features.ITSystems.Commands.Update
+
+@inherits MudComponentBase
+@inject IValidationService Validator
+@inject IStringLocalizer<ITSystems> L
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@_model" @ref="@_itSystemForm" Validation="@(Validator.ValidateValue(_model))">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Name"]" @bind-Value="_model.Name" For="@(() => _model.Name)" Required="true" RequiredError="@L["Name is required!"]"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Description"]" @bind-Value="_model.Description" For="@(() => _model.Description)"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Owner"]" @bind-Value="_model.Owner" For="@(() => _model.Owner)"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Version"]" @bind-Value="_model.Version" For="@(() => _model.Version)"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect T="string" Label="@L["Status"]" @bind-Value="_model.Status" For="@(() => _model.Status)">
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
+                        <MudSelectItem Value="@("Deprecated")">Deprecated</MudSelectItem>
+                        <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                        <MudSelectItem Value="@("Under Development")">Under Development</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Category"]" @bind-Value="_model.Category" For="@(() => _model.Category)"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@L["Vendor"]" @bind-Value="_model.Vendor" For="@(() => _model.Vendor)"></MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="@L["Installation Date"]" @bind-Date="_installationDate" For="@(() => _installationDate)"></MudDatePicker>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="@L["Last Maintenance Date"]" @bind-Date="_lastMaintenanceDate" For="@(() => _lastMaintenanceDate)"></MudDatePicker>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField T="decimal?" Label="@L["Annual Cost"]" @bind-Value="_model.AnnualCost" For="@(() => _model.AnnualCost)" Format="C" Culture="@System.Globalization.CultureInfo.CurrentCulture"></MudNumericField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect T="string" Label="@L["Criticality Level"]" @bind-Value="_model.CriticalityLevel" For="@(() => _model.CriticalityLevel)">
+                        <MudSelectItem Value="@("Critical")">Critical</MudSelectItem>
+                        <MudSelectItem Value="@("High")">High</MudSelectItem>
+                        <MudSelectItem Value="@("Medium")">Medium</MudSelectItem>
+                        <MudSelectItem Value="@("Low")">Low</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@L["Maintenance Notes"]" @bind-Value="_model.MaintenanceNotes" For="@(() => _model.MaintenanceNotes)" Lines="3"></MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@L["Compliance Requirements"]" @bind-Value="_model.ComplianceRequirements" For="@(() => _model.ComplianceRequirements)" Lines="3"></MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@ConstantString.Cancel</MudButton>
+        <MudLoadingButton Loading="@_savingnew" OnClick="OnSaveAndNew">@ConstantString.SaveAndNew</MudLoadingButton>
+        <MudLoadingButton Loading="@_saving" OnClick="OnSubmit">@ConstantString.Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    MudForm _itSystemForm = new();
+    private bool _saving = false;
+    private bool _savingnew = false;
+    private DateTime? _installationDate;
+    private DateTime? _lastMaintenanceDate;
+
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [EditorRequired] 
+    [Parameter] 
+    public object _model { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        if (_model is CreateITSystemCommand createCmd)
+        {
+            _installationDate = createCmd.InstallationDate;
+            _lastMaintenanceDate = createCmd.LastMaintenanceDate;
+        }
+        else if (_model is UpdateITSystemCommand updateCmd)
+        {
+            _installationDate = updateCmd.InstallationDate;
+            _lastMaintenanceDate = updateCmd.LastMaintenanceDate;
+        }
+    }
+
+    private void SyncDateFields()
+    {
+        if (_model is CreateITSystemCommand createCmd)
+        {
+            createCmd.InstallationDate = _installationDate;
+            createCmd.LastMaintenanceDate = _lastMaintenanceDate;
+        }
+        else if (_model is UpdateITSystemCommand updateCmd)
+        {
+            updateCmd.InstallationDate = _installationDate;
+            updateCmd.LastMaintenanceDate = _lastMaintenanceDate;
+        }
+    }
+
+    async Task OnSubmit()
+    {
+        try
+        {
+            _saving = true;
+            SyncDateFields();
+            await _itSystemForm.Validate().ConfigureAwait(false);
+            if (!_itSystemForm.IsValid)
+                return;
+            
+            var result = await Mediator.Send(_model);
+            result.Match(data =>
+            {
+                MudDialog.Close(DialogResult.Ok(true));
+                Snackbar.Add(ConstantString.SaveSuccess, MudBlazor.Severity.Info);
+            }, errors =>
+            {
+                Snackbar.Add(errors, MudBlazor.Severity.Error);
+            });
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    async Task OnSaveAndNew()
+    {
+        try
+        {
+            _savingnew = true;
+            SyncDateFields();
+            await _itSystemForm.Validate().ConfigureAwait(false);
+            if (!_itSystemForm.IsValid)
+               return;
+            
+            var result = await Mediator.Send(_model);
+            await result.MatchAsync(async data =>
+            {
+                Snackbar.Add(ConstantString.SaveSuccess, MudBlazor.Severity.Info);
+                await Task.Delay(300);
+                if (_model is CreateITSystemCommand)
+                {
+                    _model = new CreateITSystemCommand();
+                    _installationDate = null;
+                    _lastMaintenanceDate = null;
+                }
+            }, errors =>
+            {
+                Snackbar.Add(errors, MudBlazor.Severity.Error);
+                return Task.CompletedTask;
+            });
+        }
+        finally
+        {
+            _savingnew = false;
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

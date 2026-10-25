@@ -1,0 +1,25 @@
+# Task ID: 7
+# Title: Role-based access enforcement
+# Status: pending
+# Dependencies: 3, 4, 5
+# Priority: high
+# Description: Apply fine-grained permissions across pages and APIs.
+# Details:
+CIO: full; Architect: edit + dependencies; Owner: only their systems; ChangeManager: read + audit.
+
+# Test Strategy:
+Matrix test: each role attempts CRUD; only allowed actions succeed.
+
+# Subtasks:
+## 1. Define permissions and policies [pending]
+### Dependencies: None
+### Description: Add permission constants and register policies
+### Details:
+Place constants in Application/Common/Security; add policies in Server.UI Program/DI; use [Authorize(Policy=...)] in pages.
+
+## 2. UI permission checks [pending]
+### Dependencies: None
+### Description: Integrate PermissionService checks in Blazor components
+### Details:
+Use PermissionService.GetAccessRightsAsync patterns per repo rules; hide/disable actions accordingly.
+

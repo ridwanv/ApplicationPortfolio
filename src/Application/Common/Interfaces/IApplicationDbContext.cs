@@ -17,6 +17,19 @@ public interface IApplicationDbContext: IAsyncDisposable
     DbSet<Product> Products { get; set; }
     DbSet<Tenant> Tenants { get; set; }
     DbSet<Contact> Contacts { get; set; }
+    DbSet<ITSystem> ITSystems { get; set; }
+    DbSet<OrgSystem> OrgSystems { get; set; }
+    DbSet<Capability> Capabilities { get; set; }
+    DbSet<SystemCapability> SystemCapabilities { get; set; }
+    DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
+    DbSet<SystemAttribute> SystemAttributes { get; set; }
+    DbSet<DependencyEdge> DependencyEdges { get; set; }
+    
+    // APM System entities
+    DbSet<System> Systems { get; set; }
+    DbSet<SystemOwnership> SystemOwnerships { get; set; }
+    DbSet<SystemDependency> SystemDependencies { get; set; }
+    
     DbSet<LoginAudit> LoginAudits { get; set; }
     DbSet<UserLoginRiskSummary> UserLoginRiskSummaries { get; set; }
     ChangeTracker ChangeTracker { get; }

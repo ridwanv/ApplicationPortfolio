@@ -1,0 +1,43 @@
+# Task ID: 4
+# Title: System Registry CRUD (hierarchy)
+# Status: pending
+# Dependencies: 2, 3
+# Priority: high
+# Description: CRUD pages for System/SubSystem with tree view and details panel.
+# Details:
+Tree/list, create/edit forms, owner assignment, paging/filtering.
+
+# Test Strategy:
+Create parent & child systems; verify shown in hierarchy; owner visible.
+
+# Subtasks:
+## 1. Define DTOs and AutoMapper profiles [pending]
+### Dependencies: None
+### Description: Create DTOs for System and Subsystem hierarchy and mapping profiles
+### Details:
+Place under Application/Features/ITSystems (or Systems)/DTOs and Mappings; include child collections, owner info, and minimal fields for list vs details.
+
+## 2. Create Commands + Validators [pending]
+### Dependencies: None
+### Description: Implement Create/Update/Delete commands for System and Subsystem with FluentValidation
+### Details:
+Handlers must use IApplicationDbContextFactory.CreateAsync; enforce unique names per parent and ownership rules.
+
+## 3. Create Queries + Caching [pending]
+### Dependencies: None
+### Description: List/paged tree and GetById queries; integrate FusionCache where appropriate
+### Details:
+Use ProjectTo for efficient selects; add cache keys in Application/Features/Systems/Caching.
+
+## 4. CQRS Handlers + Unit Tests [pending]
+### Dependencies: None
+### Description: Implement handlers using DbContextFactory; add unit tests for validators and handlers
+### Details:
+Handlers in Application; tests in tests/Application.UnitTests; mock factory and ensure no UI/Infrastructure leakage.
+
+## 5. Blazor UI pages and components [pending]
+### Dependencies: None
+### Description: Build list/tree page, details panel, and create/edit dialogs
+### Details:
+Pages under Server.UI/Pages/ITSystems; use Mediator for data; adhere to _Imports.razor standard injections.
+

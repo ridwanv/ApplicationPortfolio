@@ -1,0 +1,321 @@
+@page "/pages/estate-documents/create/{DocumentType}"
+
+@using CleanArchitecture.Blazor.Application.Features.EstateDocuments.DTOs
+@using CleanArchitecture.Blazor.Domain.Enums
+@using CleanArchitecture.Blazor.Server.UI.Pages.EstateDocuments.Components
+
+@inject IStringLocalizer<CreateEstateDocument> L
+@inject NavigationManager Navigation
+
+<PageTitle>Create @DocumentType - Estate Planning</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Elevation="2" Class="pa-6">
+        <!-- Progress Steps -->
+        <MudStepper @ref="_stepper" Color="Color.Primary" Variant="Variant.Filled" DisableSkipping="true">
+            
+            <!-- Step 1: Basic Information -->
+            <MudStep Title="Basic Information" Icon="@Icons.Material.Filled.Info">
+                <MudGrid>
+                    <MudItem xs="12" md="8">
+                        <MudCard Elevation="0">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6" Class="mb-4">Document Details</MudText>
+                                
+                                <MudTextField @bind-Value="_model.Name" 
+                                            Label="Document Name" 
+                                            Placeholder="My Estate Plan"
+                                            Required="true"
+                                            Class="mb-3" />
+
+                                <MudSelect @bind-Value="_model.Type" 
+                                         Label="Document Type" 
+                                         Required="true"
+                                         Class="mb-3">
+                                    <MudSelectItem Value="EstateDocumentType.Will">Will-Based Estate Plan ($199)</MudSelectItem>
+                                    <MudSelectItem Value="EstateDocumentType.IndividualTrust">Individual Trust ($499)</MudSelectItem>
+                                    <MudSelectItem Value="EstateDocumentType.JointTrust">Joint Trust ($799)</MudSelectItem>
+                                    <MudSelectItem Value="EstateDocumentType.PrenuptialAgreement">Prenuptial Agreement ($999)</MudSelectItem>
+                                </MudSelect>
+
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4">
+                                    This process typically takes 15-20 minutes to complete. 
+                                    You can save your progress at any time and return later.
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" md="4">
+                        <MudCard Elevation="1">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6" Class="mb-3">What's Included</MudText>
+                                <MudStack Spacing="2">
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">Legally valid documents</MudText>
+                                    </MudStack>
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">State-specific customization</MudText>
+                                    </MudStack>
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">Unlimited lifetime updates</MudText>
+                                    </MudStack>
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">Bank-level encryption</MudText>
+                                    </MudStack>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudStep>
+
+            <!-- Step 2: Assets -->
+            <MudStep Title="Assets" Icon="@Icons.Material.Filled.AttachMoney">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                            <MudText Typo="Typo.h6">Your Assets</MudText>
+                            <MudButton StartIcon="@Icons.Material.Filled.Add" 
+                                      Variant="Variant.Outlined" 
+                                      OnClick="AddAsset">
+                                Add Asset
+                            </MudButton>
+                        </MudStack>
+
+                        @if (_assets.Any())
+                        {
+                            <MudDataGrid Items="_assets" 
+                                       ReadOnly="false" 
+                                       EditMode="DataGridEditMode.Inline"
+                                       Bordered="true"
+                                       Dense="true">
+                                <Columns>
+                                    <PropertyColumn Property="x => x.Name" Title="Asset Name" />
+                                    <PropertyColumn Property="x => x.Type" Title="Type" />
+                                    <PropertyColumn Property="x => x.EstimatedValue" Title="Value" Format="C" />
+                                    <TemplateColumn Title="Actions" Sortable="false">
+                                        <CellTemplate>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                         Color="Color.Error" 
+                                                         OnClick="() => RemoveAsset(context.Item)" />
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                </Columns>
+                            </MudDataGrid>
+                            
+                            <MudPaper Class="pa-4 mt-4" Elevation="1">
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.h6">Total Estate Value:</MudText>
+                                    <MudText Typo="Typo.h6" Color="Color.Primary">
+                                        @_assets.Sum(a => a.EstimatedValue).ToString("C")
+                                    </MudText>
+                                </MudStack>
+                            </MudPaper>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info" Class="mb-4">
+                                Add your assets to calculate inheritance distribution accurately.
+                            </MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudStep>
+
+            <!-- Step 3: Beneficiaries -->
+            <MudStep Title="Beneficiaries" Icon="@Icons.Material.Filled.People">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                            <MudText Typo="Typo.h6">Beneficiaries</MudText>
+                            <MudButton StartIcon="@Icons.Material.Filled.PersonAdd" 
+                                      Variant="Variant.Outlined" 
+                                      OnClick="AddBeneficiary">
+                                Add Beneficiary
+                            </MudButton>
+                        </MudStack>
+
+                        @if (_beneficiaries.Any())
+                        {
+                            <MudDataGrid Items="_beneficiaries" 
+                                       ReadOnly="false" 
+                                       EditMode="DataGridEditMode.Inline"
+                                       Bordered="true"
+                                       Dense="true">
+                                <Columns>
+                                    <PropertyColumn Property="x => x.Name" Title="Name" />
+                                    <PropertyColumn Property="x => x.Relationship" Title="Relationship" />
+                                    <PropertyColumn Property="x => x.Type" Title="Type" />
+                                    <PropertyColumn Property="x => x.InheritancePercentage" Title="Inheritance %" />
+                                    <TemplateColumn Title="Actions" Sortable="false">
+                                        <CellTemplate>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                         Color="Color.Error" 
+                                                         OnClick="() => RemoveBeneficiary(context.Item)" />
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                </Columns>
+                            </MudDataGrid>
+                            
+                            @{
+                                var totalPercentage = _beneficiaries.Sum(b => b.InheritancePercentage);
+                            }
+                            
+                            <MudPaper Class="pa-4 mt-4" Elevation="1">
+                                <MudStack Row Justify="Justify.SpaceBetween">
+                                    <MudText Typo="Typo.h6">Total Distribution:</MudText>
+                                    <MudText Typo="Typo.h6" Color="@(totalPercentage == 100 ? Color.Success : Color.Warning)">
+                                        @totalPercentage%
+                                    </MudText>
+                                </MudStack>
+                                @if (totalPercentage != 100)
+                                {
+                                    <MudAlert Severity="Severity.Warning" Class="mt-2">
+                                        Total inheritance percentage should equal 100%
+                                    </MudAlert>
+                                }
+                            </MudPaper>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">
+                                Add beneficiaries who will inherit your estate.
+                            </MudAlert>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudStep>
+
+            <!-- Step 4: Review & Finalize -->
+            <MudStep Title="Review" Icon="@Icons.Material.Filled.Preview">
+                <MudCard Elevation="0">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-4">Review Your Estate Plan</MudText>
+                        
+                        <!-- Document Summary -->
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudCard Elevation="1" Class="pa-4 mb-4">
+                                    <MudText Typo="Typo.h6" Class="mb-3">Document Details</MudText>
+                                    <MudText><strong>Name:</strong> @_model.Name</MudText>
+                                    <MudText><strong>Type:</strong> @_model.Type</MudText>
+                                    <MudText><strong>Price:</strong> @_model.Price.ToString("C")</MudText>
+                                </MudCard>
+                            </MudItem>
+                            
+                            <MudItem xs="12" md="6">
+                                <MudCard Elevation="1" Class="pa-4 mb-4">
+                                    <MudText Typo="Typo.h6" Class="mb-3">Estate Summary</MudText>
+                                    <MudText><strong>Total Assets:</strong> @_assets.Sum(a => a.EstimatedValue).ToString("C")</MudText>
+                                    <MudText><strong>Number of Assets:</strong> @_assets.Count</MudText>
+                                    <MudText><strong>Number of Beneficiaries:</strong> @_beneficiaries.Count</MudText>
+                                </MudCard>
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudCheckBox @bind-Value="_agreeToTerms" Class="mb-4">
+                            I agree to the <MudLink>Terms of Service</MudLink> and <MudLink>Privacy Policy</MudLink>
+                        </MudCheckBox>
+
+                        <MudButton Variant="Variant.Filled" 
+                                 Color="Color.Primary" 
+                                 StartIcon="@Icons.Material.Filled.Payment"
+                                 Disabled="!_agreeToTerms"
+                                 OnClick="ProcessPayment"
+                                 Class="mt-4">
+                            Proceed to Payment (@_model.Price.ToString("C"))
+                        </MudButton>
+                    </MudCardContent>
+                </MudCard>
+            </MudStep>
+        </MudStepper>
+
+        <!-- Navigation Buttons -->
+        <MudStack Row Justify="Justify.SpaceBetween" Class="mt-6">
+            <MudButton Variant="Variant.Text" 
+                      OnClick="() => _stepper.MoveToPrevious()"
+                      Disabled="@(_stepper?.GetActiveStepIndex() == 0)">
+                Previous
+            </MudButton>
+            
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary"
+                      OnClick="() => _stepper.MoveToNext()"
+                      Disabled="@(_stepper?.GetActiveStepIndex() == 3)">
+                Next
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public string DocumentType { get; set; } = "";
+    
+    private MudStepper? _stepper;
+    private EstateDocumentDto _model = new();
+    private List<EstateAssetDto> _assets = new();
+    private List<BeneficiaryDto> _beneficiaries = new();
+    private bool _agreeToTerms = false;
+
+    protected override void OnInitialized()
+    {
+        if (Enum.TryParse<EstateDocumentType>(DocumentType, out var docType))
+        {
+            _model.Type = docType;
+            _model.Price = GetPriceForDocumentType(docType);
+        }
+    }
+
+    private decimal GetPriceForDocumentType(EstateDocumentType type)
+    {
+        return type switch
+        {
+            EstateDocumentType.Will => 199m,
+            EstateDocumentType.IndividualTrust => 499m,
+            EstateDocumentType.JointTrust => 799m,
+            EstateDocumentType.PrenuptialAgreement => 999m,
+            _ => 0m
+        };
+    }
+
+    private void AddAsset()
+    {
+        _assets.Add(new EstateAssetDto
+        {
+            Name = $"Asset {_assets.Count + 1}",
+            Type = AssetType.BankAccount,
+            EstimatedValue = 0
+        });
+    }
+
+    private void RemoveAsset(EstateAssetDto asset)
+    {
+        _assets.Remove(asset);
+    }
+
+    private void AddBeneficiary()
+    {
+        _beneficiaries.Add(new BeneficiaryDto
+        {
+            Name = $"Beneficiary {_beneficiaries.Count + 1}",
+            Type = BeneficiaryType.Primary,
+            InheritancePercentage = 0
+        });
+    }
+
+    private void RemoveBeneficiary(BeneficiaryDto beneficiary)
+    {
+        _beneficiaries.Remove(beneficiary);
+    }
+
+    private async Task ProcessPayment()
+    {
+        // Implement payment processing
+        Navigation.NavigateTo("/pages/estate-documents");
+    }
+}

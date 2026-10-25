@@ -1,0 +1,11 @@
+# Task ID: 13
+# Title: Reporting: Roadmap timeline & compliance gaps
+# Status: pending
+# Dependencies: 12, 8, 6
+# Priority: low
+# Description: Timeline of planned changes and attribute-based compliance gaps.
+# Details:
+Gantt-style roadmap; compliance = required attributes missing/expired.
+
+# Test Strategy:
+Gantt renders and groups by owner; compliance count matches query.

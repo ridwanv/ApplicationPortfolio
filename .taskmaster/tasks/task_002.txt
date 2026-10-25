@@ -1,0 +1,43 @@
+# Task ID: 2
+# Title: Model core entities (System, Subsystem, Attribute, User, Dependency, AuditLog)
+# Status: in-progress
+# Dependencies: 1
+# Priority: high
+# Description: Implement EF Core entities and migrations for all core models.
+# Details:
+Include hierarchy for System↔Subsystem, flexible key/value Attribute model with types, Dependency edges, and append-only AuditLog.
+
+# Test Strategy:
+Apply migration to empty DB; CRUD each entity; verify FK constraints and cascade rules.
+
+# Subtasks:
+## 1. Define entities and value objects [pending]
+### Dependencies: None
+### Description: Design ER model; implement Domain entities/value objects
+### Details:
+Update Domain/Entities and ValueObjects for System, Subsystem, Attribute, DependencyEdge, AuditLog; include navigation, constraints, and enums.
+
+## 2. EF Core configurations and DbSets [pending]
+### Dependencies: None
+### Description: Add entity configurations and register DbSets
+### Details:
+Create configurations under Infrastructure/Persistence/Configurations; register DbSets in ApplicationDbContext; configure relationships, keys, delete behavior, indexes.
+
+## 3. Initial migrations (MSSQL) [pending]
+### Dependencies: None
+### Description: Create baseline EF Core migration and apply locally
+### Details:
+Use Migrators.MSSQL to add and apply initial migration for new entities; verify schema created in dev DB.
+
+## 4. Seed data and indexes [pending]
+### Dependencies: None
+### Description: Add minimal seed and performance indexes
+### Details:
+Seed essential lookup data; create indexes for common queries; place seeding in ApplicationDbContextInitializer and/or migrations as appropriate.
+
+## 5. Unit tests for entities/configs [pending]
+### Dependencies: None
+### Description: Write tests for entity rules and EF configurations
+### Details:
+Add tests in tests/Application.UnitTests and/or Infrastructure.UnitTests to assert validation, relationships, and configuration mappings.
+

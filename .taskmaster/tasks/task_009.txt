@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: Dependency Mapping (visual diagram)
+# Status: pending
+# Dependencies: 8
+# Priority: medium
+# Description: Interactive diagram view for dependencies (pan/zoom, select, add).
+# Details:
+Use Blazor.Diagrams (or equivalent). Highlight selected node neighborhood.
+
+# Test Strategy:
+Render 50-node graph smoothly; add/remove edge via canvas.

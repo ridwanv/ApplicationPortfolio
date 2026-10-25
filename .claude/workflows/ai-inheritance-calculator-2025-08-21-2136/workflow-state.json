@@ -1,0 +1,25 @@
+{
+  "feature_name": "ai-inheritance-calculator",
+  "workflow_id": "ai-inheritance-calculator-2025-08-21-2136",
+  "current_phase": "01-planning",
+  "current_agent": "trend-researcher",
+  "status": "in_progress",
+  "started_at": "2025-08-21T21:36:00Z",
+  "feature_description": "AI-powered inheritance calculator that analyzes estate documents and provides distribution recommendations",
+  "agents_completed": [],
+  "agents_remaining": [
+    "trend-researcher",
+    "ux-researcher", 
+    "sprint-prioritizer",
+    "ui-designer",
+    "backend-architect",
+    "whimsy-injector",
+    "blazor-clean-architect",
+    "frontend-developer",
+    "test-writer-fixer",
+    "project-shipper",
+    "experiment-tracker",
+    "analytics-reporter"
+  ],
+  "context_chain": []
+}

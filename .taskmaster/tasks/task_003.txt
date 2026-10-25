@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Blazor Server shell & auth scaffolding
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Create Blazor Server project with .NET Identity/claims and layout.
+# Details:
+Add login, roles (CIO, Architect, Owner, ChangeManager). Wire to DB.
+
+# Test Strategy:
+Login flow works; role claims present; unauthorized routes blocked.

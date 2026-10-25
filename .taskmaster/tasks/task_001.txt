@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Set up Azure SQL and bootstrap DB
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Provision Azure SQL Server & database; create baseline schema and CI connection.
+# Details:
+Create resource group, Azure SQL logical server, DB. Configure firewall, managed identity, and connection string secrets.
+
+# Test Strategy:
+Connect from local dev and from app service using managed identity; run smoke query.

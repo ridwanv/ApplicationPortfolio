@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: Workflow approvals (future)
+# Status: deferred
+# Dependencies: 7, 10
+# Priority: low
+# Description: Optional approval flow for edits.
+# Details:
+Submit→approve/reject; audit links to request.
+
+# Test Strategy:
+Happy path + rejection path recorded in audit.

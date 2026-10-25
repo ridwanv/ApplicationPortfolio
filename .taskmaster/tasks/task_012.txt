@@ -1,0 +1,11 @@
+# Task ID: 12
+# Title: Reporting: CIO dashboards
+# Status: pending
+# Dependencies: 4, 5, 7
+# Priority: medium
+# Description: Portfolio health—criticality heatmap, hosting distribution.
+# Details:
+Cards + charts; drill-through to system list; perf tuned queries.
+
+# Test Strategy:
+Charts load <2s on 1k systems; drill links correct.

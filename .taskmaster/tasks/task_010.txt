@@ -1,0 +1,19 @@
+# Task ID: 10
+# Title: Change logging (server-side audit)
+# Status: pending
+# Dependencies: 2, 4, 5, 8
+# Priority: high
+# Description: Log who/what/when for all mutations.
+# Details:
+EF interceptors or service layer hooks; immutable audit entries with diff.
+
+# Test Strategy:
+Perform edits; corresponding audit entries created and immutable.
+
+# Subtasks:
+## 1. Audit write pipeline [pending]
+### Dependencies: None
+### Description: Implement EF interceptor or service hook for append-only audit
+### Details:
+Capture user, entity, changes (diff), timestamp; ensure immutability and backfill support.
+

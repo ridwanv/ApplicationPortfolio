@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Portfolio Management - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+
+        .nav {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 0 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            background-color: #f8f9fa;
+            border-bottom-color: #667eea;
+        }
+
+        .nav-tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-metric {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-healthy { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-critical { background-color: #e74c3c; }
+
+        .system-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .system-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        .system-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .system-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .system-info {
+            flex: 1;
+        }
+
+        .system-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .system-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .system-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .tag-critical { background: #ffebee; color: #c62828; }
+        .tag-high { background: #fff3e0; color: #ef6c00; }
+        .tag-medium { background: #f3e5f5; color: #7b1fa2; }
+        .tag-low { background: #e8f5e8; color: #2e7d32; }
+
+        .dependency-graph {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .graph-placeholder {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .filter-select {
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .portfolio-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 250px;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .risk-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+
+        /* System Details Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .system-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .detail-section h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .detail-value {
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .dependencies-section {
+            margin-top: 2rem;
+        }
+
+        .dependency-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .dependency-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dependency-arrow {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .dependency-info {
+            flex: 1;
+        }
+
+        .dependency-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .dependency-type {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .health-indicator {
+            width: 60px;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #e9ecef;
+        }
+
+        .health-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .health-excellent { background: #28a745; width: 95%; }
+        .health-good { background: #28a745; width: 80%; }
+        .health-fair { background: #ffc107; width: 65%; }
+        .health-poor { background: #dc3545; width: 40%; }
+
+        .timeline-section {
+            margin-top: 2rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #dee2e6;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 1rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .portfolio-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-input, .filter-select {
+                width: 100%;
+            }
+            
+            .modal-content {
+                width: 95%;
+                max-height: 95vh;
+            }
+            
+            .system-details-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Application Portfolio Management</h1>
+    </header>
+
+    <nav class="nav">
+        <ul class="nav-tabs">
+            <li class="nav-tab active" onclick="showPage('dashboard')">Dashboard</li>
+            <li class="nav-tab" onclick="showPage('portfolio')">Portfolio</li>
+            <li class="nav-tab" onclick="showPage('dependencies')">Dependencies</li>
+            <li class="nav-tab" onclick="showPage('catalog')">System Catalog</li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Total Systems</h3>
+                    </div>
+                    <div class="card-metric">247</div>
+                    <div style="color: #27ae60; font-size: 0.9rem;">↗ +12 this month</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Critical Systems</h3>
+                    </div>
+                    <div class="card-metric">43</div>
+                    <div style="color: #e74c3c; font-size: 0.9rem;">● 3 need attention</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Health Score</h3>
+                    </div>
+                    <div class="card-metric">87%</div>
+                    <div style="color: #27ae60; font-size: 0.9rem;">↗ +2% this week</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Compliance Rate</h3>
+                    </div>
+                    <div class="card-metric">94%</div>
+                    <div style="color: #f39c12; font-size: 0.9rem;">● 15 systems pending</div>
+                </div>
+            </div>
+
+            <div class="system-list">
+                <div class="system-header">Recent System Updates</div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-healthy"></span>
+                            Customer Relationship Management
+                        </div>
+                        <div class="system-description">Core CRM system handling customer data and interactions</div>
+                        <div class="system-tags">
+                            <span class="tag tag-critical">Critical</span>
+                            <span class="tag">Customer Facing</span>
+                            <span class="tag">Active</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-warning"></span>
+                            Enterprise Resource Planning
+                        </div>
+                        <div class="system-description">Integrated ERP system for business processes</div>
+                        <div class="system-tags">
+                            <span class="tag tag-high">High</span>
+                            <span class="tag">Financial</span>
+                            <span class="tag">Under Review</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-healthy"></span>
+                            Data Analytics Platform
+                        </div>
+                        <div class="system-description">Business intelligence and analytics system</div>
+                        <div class="system-tags">
+                            <span class="tag tag-medium">Medium</span>
+                            <span class="tag">Analytics</span>
+                            <span class="tag">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Page -->
+        <div id="portfolio" class="page">
+            <div class="portfolio-overview">
+                <div class="chart-container">
+                    <h3 class="card-title">System Distribution by Criticality</h3>
+                    <div class="chart-placeholder">
+                        📊 Portfolio Distribution Chart
+                        <br><small>Critical: 43 | High: 78 | Medium: 89 | Low: 37</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Risk Assessment Matrix</h3>
+                    <div class="risk-matrix">
+                        <div class="risk-cell risk-low">L</div>
+                        <div class="risk-cell risk-low">L</div>
+                        <div class="risk-cell risk-medium">M</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-low">L</div>
+                        <div class="risk-cell risk-medium">M</div>
+                        <div class="risk-cell risk-medium">M</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-medium">M</div>
+                        <div class="risk-cell risk-medium">M</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                        <div class="risk-cell risk-high">H</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3 class="card-title">Technology Stack Distribution</h3>
+                    <div style="margin-top: 1rem;">
+                        <div style="margin-bottom: 0.5rem;"><strong>.NET:</strong> 45 systems</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>Java:</strong> 38 systems</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>Python:</strong> 29 systems</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>Node.js:</strong> 22 systems</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Lifecycle Status</h3>
+                    <div style="margin-top: 1rem;">
+                        <div style="margin-bottom: 0.5rem;">🟢 <strong>Active:</strong> 189</div>
+                        <div style="margin-bottom: 0.5rem;">🟡 <strong>Maintenance:</strong> 34</div>
+                        <div style="margin-bottom: 0.5rem;">🟠 <strong>Sunset:</strong> 18</div>
+                        <div style="margin-bottom: 0.5rem;">🔴 <strong>Decommissioned:</strong> 6</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dependencies Page -->
+        <div id="dependencies" class="page">
+            <div class="dependency-graph">
+                <h3 class="card-title">System Dependency Visualization</h3>
+                <div class="graph-placeholder">
+                    🔗 Interactive Dependency Graph
+                    <br><small>Showing relationships between 247 systems</small>
+                    <br><br>
+                    <div style="text-align: left; max-width: 300px;">
+                        <strong>Key Dependencies:</strong><br>
+                        • CRM → Customer Database<br>
+                        • ERP → Financial Systems<br>
+                        • Analytics → Data Warehouse<br>
+                        • Portal → Authentication Service
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Catalog Page -->
+        <div id="catalog" class="page">
+            <div class="filters">
+                <div class="filter-row">
+                    <input type="text" class="filter-input" placeholder="Search systems..." style="flex: 1;">
+                    <select class="filter-select">
+                        <option>All Criticality Levels</option>
+                        <option>Critical</option>
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>All Technologies</option>
+                        <option>.NET</option>
+                        <option>Java</option>
+                        <option>Python</option>
+                        <option>Node.js</option>
+                    </select>
+                    <button class="btn btn-primary">Filter</button>
+                </div>
+            </div>
+
+            <div class="system-list">
+                <div class="system-header">System Catalog (247 systems)</div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-healthy"></span>
+                            Customer Relationship Management
+                        </div>
+                        <div class="system-description">Salesforce-based CRM system managing customer lifecycle</div>
+                        <div class="system-tags">
+                            <span class="tag tag-critical">Critical</span>
+                            <span class="tag">.NET Core</span>
+                            <span class="tag">SQL Server</span>
+                            <span class="tag">Azure</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-warning"></span>
+                            Enterprise Resource Planning
+                        </div>
+                        <div class="system-description">SAP ERP system for financial and operational processes</div>
+                        <div class="system-tags">
+                            <span class="tag tag-high">High</span>
+                            <span class="tag">Java</span>
+                            <span class="tag">Oracle DB</span>
+                            <span class="tag">On-Premise</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-healthy"></span>
+                            Data Analytics Platform
+                        </div>
+                        <div class="system-description">Tableau-based analytics and reporting platform</div>
+                        <div class="system-tags">
+                            <span class="tag tag-medium">Medium</span>
+                            <span class="tag">Python</span>
+                            <span class="tag">PostgreSQL</span>
+                            <span class="tag">AWS</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-critical"></span>
+                            Legacy Inventory System
+                        </div>
+                        <div class="system-description">Aging inventory management system requiring modernization</div>
+                        <div class="system-tags">
+                            <span class="tag tag-high">High</span>
+                            <span class="tag">COBOL</span>
+                            <span class="tag">Mainframe</span>
+                            <span class="tag">End-of-Life</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-item">
+                    <div class="system-info">
+                        <div class="system-name">
+                            <span class="status-indicator status-healthy"></span>
+                            Employee Portal
+                        </div>
+                        <div class="system-description">Self-service portal for employee HR functions</div>
+                        <div class="system-tags">
+                            <span class="tag tag-low">Low</span>
+                            <span class="tag">React</span>
+                            <span class="tag">Node.js</span>
+                            <span class="tag">MongoDB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Details Modal -->
+    <div id="systemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalSystemName">System Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- System Overview -->
+                <div class="system-details-grid">
+                    <div class="detail-section">
+                        <h4>System Information</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">System ID:</span>
+                            <span class="detail-value" id="systemId">SYS-001</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Owner:</span>
+                            <span class="detail-value" id="systemOwner">IT Department</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Business Contact:</span>
+                            <span class="detail-value" id="businessContact">John Smith</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Technical Contact:</span>
+                            <span class="detail-value" id="technicalContact">Jane Doe</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Updated:</span>
+                            <span class="detail-value" id="lastUpdated">2024-01-15</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Technical Details</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Technology Stack:</span>
+                            <span class="detail-value" id="techStack">.NET Core, SQL Server</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Hosting Environment:</span>
+                            <span class="detail-value" id="hosting">Azure Cloud</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Version:</span>
+                            <span class="detail-value" id="version">v2.1.3</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">License:</span>
+                            <span class="detail-value" id="license">Enterprise</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Compliance:</span>
+                            <span class="detail-value" id="compliance">SOC 2, GDPR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Metrics -->
+                <div class="detail-section">
+                    <h4>Performance Metrics</h4>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value">99.2%</div>
+                            <div class="metric-label">Uptime</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">1.2s</div>
+                            <div class="metric-label">Avg Response Time</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">2,847</div>
+                            <div class="metric-label">Daily Users</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">12.3GB</div>
+                            <div class="metric-label">Data Storage</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">4.2/5</div>
+                            <div class="metric-label">User Rating</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">$8,400</div>
+                            <div class="metric-label">Monthly Cost</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Dependencies -->
+                <div class="dependencies-section">
+                    <div class="detail-section">
+                        <h4>System Dependencies</h4>
+                        <div class="dependency-list">
+                            <div class="dependency-item">
+                                <span class="dependency-arrow">→</span>
+                                <div class="dependency-info">
+                                    <div class="dependency-name">Customer Database</div>
+                                    <div class="dependency-type">Database Dependency</div>
+                                </div>
+                                <div class="health-indicator">
+                                    <div class="health-bar health-excellent"></div>
+                                </div>
+                            </div>
+                            <div class="dependency-item">
+                                <span class="dependency-arrow">→</span>
+                                <div class="dependency-info">
+                                    <div class="dependency-name">Authentication Service</div>
+                                    <div class="dependency-type">API Dependency</div>
+                                </div>
+                                <div class="health-indicator">
+                                    <div class="health-bar health-good"></div>
+                                </div>
+                            </div>
+                            <div class="dependency-item">
+                                <span class="dependency-arrow">→</span>
+                                <div class="dependency-info">
+                                    <div class="dependency-name">Payment Gateway</div>
+                                    <div class="dependency-type">External Service</div>
+                                </div>
+                                <div class="health-indicator">
+                                    <div class="health-bar health-fair"></div>
+                                </div>
+                            </div>
+                            <div class="dependency-item">
+                                <span class="dependency-arrow">←</span>
+                                <div class="dependency-info">
+                                    <div class="dependency-name">Mobile App</div>
+                                    <div class="dependency-type">Dependent System</div>
+                                </div>
+                                <div class="health-indicator">
+                                    <div class="health-bar health-excellent"></div>
+                                </div>
+                            </div>
+                            <div class="dependency-item">
+                                <span class="dependency-arrow">←</span>
+                                <div class="dependency-info">
+                                    <div class="dependency-name">Reporting System</div>
+                                    <div class="dependency-type">Dependent System</div>
+                                </div>
+                                <div class="health-indicator">
+                                    <div class="health-bar health-good"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Timeline -->
+                <div class="timeline-section">
+                    <div class="detail-section">
+                        <h4>Recent Activity</h4>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-date">January 15, 2024</div>
+                                <div class="timeline-content">System upgraded to v2.1.3 - Performance improvements deployed</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-date">January 10, 2024</div>
+                                <div class="timeline-content">Security patch applied - SSL certificate renewed</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-date">January 5, 2024</div>
+                                <div class="timeline-content">Database optimization completed - 25% performance increase</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-date">December 28, 2023</div>
+                                <div class="timeline-content">Integration with new payment gateway - Testing in progress</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Assessment -->
+                <div class="system-details-grid">
+                    <div class="detail-section">
+                        <h4>Risk Assessment</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Security Risk:</span>
+                            <span class="detail-value" style="color: #28a745;">Low</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Technical Debt:</span>
+                            <span class="detail-value" style="color: #ffc107;">Medium</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Business Impact:</span>
+                            <span class="detail-value" style="color: #dc3545;">High</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Vendor Risk:</span>
+                            <span class="detail-value" style="color: #28a745;">Low</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Lifecycle Management</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">Current Phase:</span>
+                            <span class="detail-value">Production</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Next Review:</span>
+                            <span class="detail-value">March 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">End of Support:</span>
+                            <span class="detail-value">December 2026</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Retirement Plan:</span>
+                            <span class="detail-value">Not Scheduled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update navigation
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // System detail modal functionality
+        function openSystemModal(systemName, systemData) {
+            const modal = document.getElementById('systemModal');
+            const modalSystemName = document.getElementById('modalSystemName');
+            
+            modalSystemName.textContent = systemName || 'System Details';
+            
+            // Update modal content based on system data if provided
+            if (systemData) {
+                updateModalContent(systemData);
+            }
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('systemModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+        
+        function updateModalContent(data) {
+            // Update system information
+            if (data.id) document.getElementById('systemId').textContent = data.id;
+            if (data.owner) document.getElementById('systemOwner').textContent = data.owner;
+            if (data.businessContact) document.getElementById('businessContact').textContent = data.businessContact;
+            if (data.technicalContact) document.getElementById('technicalContact').textContent = data.technicalContact;
+            if (data.lastUpdated) document.getElementById('lastUpdated').textContent = data.lastUpdated;
+            if (data.techStack) document.getElementById('techStack').textContent = data.techStack;
+            if (data.hosting) document.getElementById('hosting').textContent = data.hosting;
+            if (data.version) document.getElementById('version').textContent = data.version;
+            if (data.license) document.getElementById('license').textContent = data.license;
+            if (data.compliance) document.getElementById('compliance').textContent = data.compliance;
+        }
+        
+        // Sample system data
+        const systemsData = {
+            'Customer Relationship Management': {
+                id: 'SYS-CRM-001',
+                owner: 'Sales Department',
+                businessContact: 'Sarah Johnson',
+                technicalContact: 'Mike Chen',
+                lastUpdated: '2024-01-15',
+                techStack: '.NET Core, SQL Server, Azure',
+                hosting: 'Azure Cloud',
+                version: 'v3.2.1',
+                license: 'Enterprise',
+                compliance: 'SOC 2, GDPR, HIPAA'
+            },
+            'Enterprise Resource Planning': {
+                id: 'SYS-ERP-002',
+                owner: 'Finance Department',
+                businessContact: 'Robert Davis',
+                technicalContact: 'Alice Wong',
+                lastUpdated: '2024-01-10',
+                techStack: 'Java, Oracle DB, On-Premise',
+                hosting: 'On-Premise Data Center',
+                version: 'v12.5.3',
+                license: 'SAP Enterprise',
+                compliance: 'SOX, GDPR'
+            },
+            'Data Analytics Platform': {
+                id: 'SYS-ANA-003',
+                owner: 'Analytics Team',
+                businessContact: 'Lisa Martinez',
+                technicalContact: 'David Kim',
+                lastUpdated: '2024-01-12',
+                techStack: 'Python, PostgreSQL, Tableau',
+                hosting: 'AWS Cloud',
+                version: 'v2.8.0',
+                license: 'Tableau Enterprise',
+                compliance: 'GDPR, CCPA'
+            }
+        };
+
+        // Add click event listeners to system items
+        document.querySelectorAll('.system-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const systemNameElement = this.querySelector('.system-name');
+                if (systemNameElement) {
+                    const systemName = systemNameElement.textContent.trim();
+                    const systemData = systemsData[systemName] || {};
+                    openSystemModal(systemName, systemData);
+                }
+            });
+        });
+        
+        // Close modal when clicking outside of it
+        document.getElementById('systemModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -27,6 +27,19 @@ public class ApplicationDbContext : IdentityDbContext<
     public DbSet<PicklistSet> PicklistSets { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Contact> Contacts { get; set; }
+    public DbSet<ITSystem> ITSystems { get; set; }
+    public DbSet<OrgSystem> OrgSystems { get; set; }
+    public DbSet<Capability> Capabilities { get; set; }
+    public DbSet<SystemCapability> SystemCapabilities { get; set; }
+    public DbSet<AttributeDefinition> AttributeDefinitions { get; set; }
+    public DbSet<SystemAttribute> SystemAttributes { get; set; }
+    public DbSet<DependencyEdge> DependencyEdges { get; set; }
+    
+    // APM System entities
+    public DbSet<System> Systems { get; set; }
+    public DbSet<SystemOwnership> SystemOwnerships { get; set; }
+    public DbSet<SystemDependency> SystemDependencies { get; set; }
+    
     public DbSet<LoginAudit> LoginAudits { get; set; }
     public DbSet<UserLoginRiskSummary> UserLoginRiskSummaries { get; set; }
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }

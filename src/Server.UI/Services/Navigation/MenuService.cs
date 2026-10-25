@@ -38,6 +38,24 @@ public class MenuService : IMenuService
                             Title = "Contacts",
                             Href = "/pages/contacts",
                             PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
+                            Title = "Systems",
+                            Href = "/pages/systems",
+                            PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
+                            Title = "IT Systems",
+                            Href = "/pages/itsystems",
+                            PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
+                            Title = "Capabilities",
+                            Href = "/pages/capabilities",
+                            PageStatus = PageStatus.Completed
                         }
                     }
                 },
@@ -64,6 +82,29 @@ public class MenuService : IMenuService
                     Icon = Icons.Material.Filled.CalendarToday,
                     Href = "/booking",
                     PageStatus = PageStatus.ComingSoon
+                },
+                new()
+                {
+                    Title = "Estate Planning",
+                    Roles = new[] { RoleName.Admin, RoleName.Users },
+                    Icon = Icons.Material.Filled.Description,
+                    PageStatus = PageStatus.Completed,
+                    IsParent = true,
+                    MenuItems = new List<MenuSectionSubItemModel>
+                    {
+                        new()
+                        {
+                            Title = "Estate Documents",
+                            Href = "/pages/estate-documents",
+                            PageStatus = PageStatus.Completed
+                        },
+                        new()
+                        {
+                            Title = "Inheritance Calculator",
+                            Href = "/pages/inheritance-calculator",
+                            PageStatus = PageStatus.Completed
+                        }
+                    }
                 }
             }
         },

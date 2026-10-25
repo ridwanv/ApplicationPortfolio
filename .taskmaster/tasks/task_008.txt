@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Dependency Mapping (table view)
+# Status: pending
+# Dependencies: 4, 7
+# Priority: medium
+# Description: Create tabular view to add/list system-to-system relationships.
+# Details:
+Support upstream/downstream and notes; de-duplicate edges.
+
+# Test Strategy:
+Add edges both ways; table shows unique, consistent directionality.

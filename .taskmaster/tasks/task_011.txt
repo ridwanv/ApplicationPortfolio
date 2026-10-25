@@ -1,0 +1,11 @@
+# Task ID: 11
+# Title: Audit Trail UI
+# Status: pending
+# Dependencies: 10, 7
+# Priority: medium
+# Description: Provide searchable audit view for Change Managers.
+# Details:
+Filters by user, entity, date; export CSV/PDF.
+
+# Test Strategy:
+Filter by entity/date; export matches on-screen rows.

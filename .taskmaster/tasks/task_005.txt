@@ -1,0 +1,31 @@
+# Task ID: 5
+# Title: Attribute Management UI & API
+# Status: pending
+# Dependencies: 2, 4
+# Priority: high
+# Description: Add attributes dynamically, with data types and validation rules.
+# Details:
+Types: text, number, enum, bool, date. Flags: required, scoped-to-level. Server-side validation.
+
+# Test Strategy:
+Create new attribute types; attach to systems; invalid data rejected.
+
+# Subtasks:
+## 1. Define Attribute schema and validators [pending]
+### Dependencies: None
+### Description: Decide attribute types and validation rules; create validators
+### Details:
+Model server-side validation for required, ranges, enums; FluentValidation rules; plan extension points.
+
+## 2. Commands/Queries for attributes [pending]
+### Dependencies: None
+### Description: Implement CRUD and attach-to-system flows via CQRS
+### Details:
+Use DbContextFactory; ensure unique per-system constraints as needed; ProjectTo for list/detail.
+
+## 3. Blazor forms with validation [pending]
+### Dependencies: None
+### Description: Create UI forms for attribute creation and assignment with server validation
+### Details:
+Use MudBlazor components; display validation messages; permission-aware actions.
+

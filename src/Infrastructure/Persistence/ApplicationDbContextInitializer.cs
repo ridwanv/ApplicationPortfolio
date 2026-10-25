@@ -312,5 +312,18 @@ public class ApplicationDbContextInitializer
             await _context.Products.AddRangeAsync(products);
             await _context.SaveChangesAsync();
         }
+
+        if (!await _context.AttributeDefinitions.AnyAsync())
+        {
+            _logger.LogInformation("Seeding attribute definitions...");
+            var attrs = new[]
+            {
+                new AttributeDefinition { Name = "Criticality", Description = "Business criticality", DataType = Domain.Enums.AttributeDataType.Enum, EnumOptionsCsv = "Low,Medium,High" },
+                new AttributeDefinition { Name = "Owner", Description = "System owner", DataType = Domain.Enums.AttributeDataType.Text },
+                new AttributeDefinition { Name = "GoLiveDate", Description = "Initial go-live date", DataType = Domain.Enums.AttributeDataType.Date }
+            };
+            await _context.AttributeDefinitions.AddRangeAsync(attrs);
+            await _context.SaveChangesAsync();
+        }
     }
 }

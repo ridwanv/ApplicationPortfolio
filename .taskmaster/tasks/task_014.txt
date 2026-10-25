@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Excel import/export (future)
+# Status: deferred
+# Dependencies: 4, 5, 10
+# Priority: low
+# Description: One-click import from legacy workbook and export/sync.
+# Details:
+Mapper from known sheets; idempotent upserts; export filters.
+
+# Test Strategy:
+Round-trip sample Excel yields no diffs.

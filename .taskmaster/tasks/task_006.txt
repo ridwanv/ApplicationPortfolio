@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Backfill workflow for new attributes
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Prompt users to populate newly added attributes across all systems.
+# Details:
+Generate backlog list; bulk edit grid; progress meter; skip/justify.
+
+# Test Strategy:
+Add attribute; see N backfill items; bulk update persists correctly.
